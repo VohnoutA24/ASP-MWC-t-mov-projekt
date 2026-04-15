@@ -1046,6 +1046,11 @@ a:hover {
 .badge-english { background: rgba(244, 63, 94, 0.15); color: #fb7185; }
 .badge-physics { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
 .badge-it { background: rgba(124, 58, 237, 0.15); color: #a78bfa; }
+.badge-science { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+.badge-pe { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+.badge-history { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
+.badge-music { background: rgba(236, 72, 153, 0.15); color: #f472b6; }
+.badge-art { background: rgba(14, 165, 233, 0.15); color: #38bdf8; }
 
 /* --- PROFILE PAGE --- */
 .profile-page {
