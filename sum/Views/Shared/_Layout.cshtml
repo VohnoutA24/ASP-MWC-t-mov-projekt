@@ -13,6 +13,12 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/sum.styles.css" asp-append-version="true" />
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
 </head>
 <body>
     <header>
@@ -119,6 +125,10 @@
             </div>
             <div class="footer-bottom">
                 <p>&copy; 2026 Základní škola Chvalkovice. Všechna práva vyhrazena.</p>
+                <button id="themeToggle" class="theme-toggle-btn" aria-label="Přepnout tmavý režim">
+                    <i class="fas fa-moon"></i>
+                    <span>Tmavý režim</span>
+                </button>
             </div>
         </div>
     </footer>

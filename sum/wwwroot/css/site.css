@@ -906,8 +906,13 @@ a:hover {
     border-bottom: none;
 }
 
-.schedule-table tr:hover td {
-    background: var(--primary-50);
+.schedule-table tr {
+    transition: background-color 0.15s ease;
+}
+
+.schedule-table tr:hover td,
+.schedule-table tr.hover-sync td {
+    background: var(--primary-100);
 }
 
 .badge-subject {
@@ -989,39 +994,15 @@ a:hover {
     color: var(--text-primary);
 }
 
-.timetable-arrow {
-    width: 44px;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: white;
-    border: 1px solid var(--border);
-    color: var(--text-primary);
-    font-size: 1rem;
-    cursor: pointer;
-    transition: var(--transition);
-}
 
-.timetable-prev {
-    border-radius: var(--radius-md) 0 0 var(--radius-md);
-    border-right: none;
-}
 
-.timetable-next {
-    border-radius: 0 var(--radius-md) var(--radius-md) 0;
-    border-left: none;
-}
 
-.timetable-arrow:hover:not(:disabled) {
-    background: var(--primary-50);
-    color: var(--primary);
-}
 
-.timetable-arrow:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-}
+
+
+
+
+
 
 /* Day dots */
 .timetable-dots {
@@ -1057,22 +1038,14 @@ a:hover {
 
 /* Double lessons */
 .double-lesson-top td {
-    border-bottom: none !important;
+    /* border-bottom: none !important; */
 }
 
 .double-lesson-bottom td {
     padding-top: 0.3rem;
 }
 
-.double-tag {
-    display: block;
-    font-size: 0.68rem;
-    color: var(--text-muted);
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    margin-top: 0.2rem;
-}
+
 
 /* --- DASHBOARD QUICK LINKS --- */
 .dashboard-quick-links {
@@ -1575,3 +1548,158 @@ a:hover {
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
     color: var(--text-muted);
 }
+/* =============================================
+   DARK MODE OVERRIDES
+   ============================================= */
+/* =============================================
+   DARK MODE OVERRIDES (OLED BLACK)
+   ============================================= */
+/* =============================================
+   DARK MODE OVERRIDES (OLED BLACK)
+   ============================================= */
+[data-theme="dark"] {
+    --primary: #3b82f6;
+    --primary-light: #60a5fa;
+    --bg-primary: #000000;
+    --bg-secondary: #000000;
+    --bg-tertiary: #0a0a0a;
+    --bg-card: #000000;
+    --bg-input: #0a0a0a;
+
+    --text-primary: #ffffff;
+    --text-secondary: #e2e8f0;
+    --text-muted: #94a3b8;
+
+    --border: #161616;
+    --border-light: #222222;
+
+    --shadow-sm: 0 0 0 1px #111111;
+    --shadow-md: 0 0 0 1px #161616;
+    --shadow-lg: 0 0 0 2px #161616;
+
+    --primary-50: rgba(59, 130, 246, 0.1);
+    --primary-100: rgba(59, 130, 246, 0.18);
+    --primary-200: rgba(59, 130, 246, 0.3);
+}
+
+[data-theme="dark"] body {
+    background-color: #000000 !important;
+}
+
+[data-theme="dark"] .school-nav,
+[data-theme="dark"] .nav-menu {
+    background-color: rgba(0, 0, 0, 0.95) !important;
+    backdrop-filter: blur(10px);
+}
+
+[data-theme="dark"] .hero,
+[data-theme="dark"] .feature-card,
+[data-theme="dark"] .stat-card,
+[data-theme="dark"] .auth-card,
+[data-theme="dark"] .dash-card,
+[data-theme="dark"] .schedule-card,
+[data-theme="dark"] .timetable-arrow,
+[data-theme="dark"] .tt-dot,
+[data-theme="dark"] .quick-link-card,
+[data-theme="dark"] .info-card,
+[data-theme="dark"] .menu-day,
+[data-theme="dark"] .profile-card,
+[data-theme="dark"] .school-footer {
+    background-color: #000000 !important;
+    border-color: var(--border) !important;
+}
+
+[data-theme="dark"] .btn-nav-login,
+[data-theme="dark"] .btn-secondary-custom {
+    background-color: transparent !important;
+    border-color: #333 !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .hero h1,
+[data-theme="dark"] .section-header h2,
+[data-theme="dark"] .feature-card h3,
+[data-theme="dark"] .auth-header h1,
+[data-theme="dark"] .form-group label,
+[data-theme="dark"] .dashboard-header h1,
+[data-theme="dark"] .schedule-card h2,
+[data-theme="dark"] .timetable-header h1,
+[data-theme="dark"] .cafeteria-header h1,
+[data-theme="dark"] .menu-day-name,
+[data-theme="dark"] .profile-name h1,
+[data-theme="dark"] .footer-section h3,
+[data-theme="dark"] .nav-brand,
+[data-theme="dark"] .brand-text,
+[data-theme="dark"] .nav-links .nav-link,
+[data-theme="dark"] .user-name {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .nav-links .nav-link:hover {
+    background: #111;
+    color: var(--primary-light);
+}
+
+[data-theme="dark"] .form-input {
+    background-color: #0a0a0a;
+    border-color: var(--border);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .menu-day-header,
+[data-theme="dark"] .schedule-table th {
+    background-color: #0a0a0a;
+}
+
+[data-theme="dark"] .user-badge,
+[data-theme="dark"] .hero-badge,
+[data-theme="dark"] .profile-name .role-badge {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.2);
+    color: var(--primary-light);
+}
+
+/* Theme Transition Efficiency */
+body.theme-transitioning,
+body.theme-transitioning * {
+    transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease !important;
+    transition-delay: 0s !important;
+}
+
+/* Theme toggle button specific styles */
+.theme-toggle-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 0.35rem 0.6rem;
+    border-radius: var(--radius-xl);
+    font-size: 0.68rem;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.5rem;
+    font-weight: 500;
+}
+
+.theme-toggle-btn:hover {
+    background: var(--bg-tertiary);
+    color: var(--primary);
+    border-color: var(--primary-200);
+}
+
+.theme-toggle-btn i {
+    font-size: 0.75rem;
+}
+
+[data-theme="dark"] .theme-toggle-btn {
+    border-color: #222;
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .theme-toggle-btn:hover {
+    background: #111;
+    color: var(--primary-light);
+}
+

@@ -65,4 +65,38 @@ document.addEventListener('DOMContentLoaded', function () {
             this.closest('.form-group')?.classList.remove('focused');
         });
     });
+
+    // Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+        const themeIcon = themeToggle.querySelector('i');
+        const themeText = themeToggle.querySelector('span');
+
+        const updateToggleUI = (theme) => {
+            if (theme === 'dark') {
+                themeIcon.classList.replace('fa-moon', 'fa-sun');
+                themeText.textContent = 'Světlý režim';
+            } else {
+                themeIcon.classList.replace('fa-sun', 'fa-moon');
+                themeText.textContent = 'Tmavý režim';
+            }
+        };
+
+        // Sync UI on load
+        updateToggleUI(document.documentElement.getAttribute('data-theme'));
+
+        themeToggle.addEventListener('click', function () {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.body.classList.add('theme-transitioning');
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateToggleUI(newTheme);
+
+            setTimeout(() => {
+                document.body.classList.remove('theme-transitioning');
+            }, 400);
+        });
+    }
 });

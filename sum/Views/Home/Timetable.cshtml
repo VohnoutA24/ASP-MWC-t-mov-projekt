@@ -9,10 +9,6 @@
     </div>
 
     <div class="timetable-slider animate-in">
-        <button class="timetable-arrow timetable-prev" id="ttPrev" aria-label="Předchozí den">
-            <i class="fas fa-chevron-left"></i>
-        </button>
-
         <div class="timetable-viewport" id="ttViewport">
             <!-- Pondělí -->
             <div class="timetable-day" data-day="0">
@@ -45,7 +41,7 @@
                         <tr class="double-lesson-top">
                             <td>3.</td>
                             <td>9:55 – 10:40</td>
-                            <td rowspan="2"><span class="badge-subject badge-english">Anglický jazyk</span><span class="double-tag">dvojhodina</span></td>
+                            <td rowspan="2"><span class="badge-subject badge-english">Anglický jazyk</span></td>
                             <td>Mgr. Holubová</td>
                             <td>B201</td>
                         </tr>
@@ -171,7 +167,7 @@
                         <tr class="double-lesson-top">
                             <td>4.</td>
                             <td>10:50 – 11:35</td>
-                            <td rowspan="2"><span class="badge-subject badge-pe">Tělesná výchova</span><span class="double-tag">dvojhodina</span></td>
+                            <td rowspan="2"><span class="badge-subject badge-pe">Tělesná výchova</span></td>
                             <td>Mgr. Vrána</td>
                             <td>Tělocvična</td>
                         </tr>
@@ -305,10 +301,6 @@
                 </table>
             </div>
         </div>
-
-        <button class="timetable-arrow timetable-next" id="ttNext" aria-label="Další den">
-            <i class="fas fa-chevron-right"></i>
-        </button>
     </div>
 
     <div class="timetable-dots" id="ttDots">
@@ -325,8 +317,6 @@
         (function () {
             const days = document.querySelectorAll('.timetable-day');
             const dots = document.querySelectorAll('.tt-dot');
-            const prev = document.getElementById('ttPrev');
-            const next = document.getElementById('ttNext');
             let current = new Date().getDay() - 1;
             if (current < 0 || current > 4) current = 0;
 
@@ -338,13 +328,27 @@
                 dots.forEach((d, idx) => {
                     d.classList.toggle('active', idx === current);
                 });
-                prev.disabled = current === 0;
-                next.disabled = current === 4;
             }
 
-            prev.addEventListener('click', () => show(current - 1));
-            next.addEventListener('click', () => show(current + 1));
             dots.forEach(d => d.addEventListener('click', () => show(+d.dataset.day)));
+
+            // Synchronize hover for double lessons
+            document.querySelectorAll('.double-lesson-top, .double-lesson-bottom').forEach(row => {
+                row.addEventListener('mouseenter', () => {
+                    const parent = row.parentElement;
+                    const rows = Array.from(parent.children);
+                    const idx = rows.indexOf(row);
+                    if (row.classList.contains('double-lesson-top')) {
+                        rows[idx + 1]?.classList.add('hover-sync');
+                    } else {
+                        rows[idx - 1]?.classList.add('hover-sync');
+                    }
+                });
+                row.addEventListener('mouseleave', () => {
+                    const parent = row.parentElement;
+                    Array.from(parent.children).forEach(r => r.classList.remove('hover-sync'));
+                });
+            });
 
             show(current);
         })();
