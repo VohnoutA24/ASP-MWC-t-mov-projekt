@@ -40,19 +40,19 @@ namespace sum.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            var user = await _db.Users.FirstOrDefaultAsync(u => u.Username == model.Username);
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
             if (user == null || !VerifyPassword(model.Password, user.PasswordHash))
             {
-                ModelState.AddModelError(string.Empty, "Neplatné uživatelské jméno nebo heslo.");
+                ModelState.AddModelError(string.Empty, "Neplatný e-mail nebo heslo.");
                 return View(model);
             }
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.Name, user.Email),
                 new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimTypes.Role, user.Role),
-                new Claim("FullName", user.FullName ?? user.Username),
+                new Claim("FullName", user.FullName ?? user.Email),
                 new Claim("UserId", user.Id.ToString())
             };
 
@@ -64,8 +64,8 @@ namespace sum.Controllers
                 principal,
                 new AuthenticationProperties
                 {
-                    IsPersistent = model.RememberMe,
-                    ExpiresUtc = model.RememberMe ? DateTimeOffset.UtcNow.AddDays(30) : null
+                    IsPersistent = false,
+                    ExpiresUtc = DateTimeOffset.UtcNow.AddHours(8)
                 });
 
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
@@ -92,23 +92,20 @@ namespace sum.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            if (await _db.Users.AnyAsync(u => u.Username == model.Username))
-            {
-                ModelState.AddModelError("Username", "Toto uživatelské jméno je již obsazené.");
-                return View(model);
-            }
-
             if (await _db.Users.AnyAsync(u => u.Email == model.Email))
             {
                 ModelState.AddModelError("Email", "Tento e-mail je již registrovaný.");
                 return View(model);
             }
 
+            // Derive username from email (part before @)
+            var username = model.Email.Split('@')[0];
+
             var user = new User
             {
-                Username = model.Username,
+                Username = username,
                 Email = model.Email,
-                FullName = model.FullName,
+                FullName = null,
                 PasswordHash = HashPassword(model.Password),
                 Role = "Student",
                 CreatedAt = DateTime.UtcNow
@@ -137,8 +134,8 @@ namespace sum.Controllers
             if (User.Identity?.IsAuthenticated != true)
                 return RedirectToAction("Login");
 
-            var username = User.Identity.Name;
-            var user = await _db.Users.FirstOrDefaultAsync(u => u.Username == username);
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == email);
             if (user == null)
                 return RedirectToAction("Login");
 
