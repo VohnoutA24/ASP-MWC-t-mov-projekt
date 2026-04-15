@@ -56,6 +56,14 @@ namespace sum.Controllers
             return View();
         }
 
+        public IActionResult Cafeteria()
+        {
+            if (User.Identity?.IsAuthenticated != true)
+                return RedirectToAction("Login", "Account");
+
+            return View();
+        }
+
         public IActionResult Privacy()
         {
             return View();

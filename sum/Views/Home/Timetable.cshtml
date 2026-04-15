@@ -8,296 +8,345 @@
         <p>Školní rok 2025/2026</p>
     </div>
 
-    <!-- Pondělí -->
-    <div class="schedule-card animate-in">
-        <h2><i class="fas fa-calendar-day"></i> Pondělí</h2>
-        <table class="schedule-table">
-            <thead>
-                <tr>
-                    <th>Hod.</th>
-                    <th>Čas</th>
-                    <th>Předmět</th>
-                    <th>Učitel</th>
-                    <th>Učebna</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>1.</td>
-                    <td>8:00 – 8:45</td>
-                    <td><span class="badge-subject badge-czech">Český jazyk</span></td>
-                    <td>Mgr. Kovářová</td>
-                    <td>A101</td>
-                </tr>
-                <tr>
-                    <td>2.</td>
-                    <td>8:55 – 9:40</td>
-                    <td><span class="badge-subject badge-math">Matematika</span></td>
-                    <td>Mgr. Novák</td>
-                    <td>A102</td>
-                </tr>
-                <tr>
-                    <td>3.</td>
-                    <td>9:55 – 10:40</td>
-                    <td><span class="badge-subject badge-english">Anglický jazyk</span></td>
-                    <td>Mgr. Holubová</td>
-                    <td>B201</td>
-                </tr>
-                <tr>
-                    <td>4.</td>
-                    <td>10:50 – 11:35</td>
-                    <td><span class="badge-subject badge-physics">Fyzika</span></td>
-                    <td>Mgr. Bartoš</td>
-                    <td>A105</td>
-                </tr>
-                <tr>
-                    <td>5.</td>
-                    <td>11:45 – 12:30</td>
-                    <td><span class="badge-subject badge-history">Dějepis</span></td>
-                    <td>Mgr. Dvořák</td>
-                    <td>A104</td>
-                </tr>
-                <tr>
-                    <td>6.</td>
-                    <td>12:40 – 13:25</td>
-                    <td><span class="badge-subject badge-pe">Tělesná výchova</span></td>
-                    <td>Mgr. Vrána</td>
-                    <td>Tělocvična</td>
-                </tr>
-            </tbody>
-        </table>
+    <div class="timetable-slider animate-in">
+        <button class="timetable-arrow timetable-prev" id="ttPrev" aria-label="Předchozí den">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+
+        <div class="timetable-viewport" id="ttViewport">
+            <!-- Pondělí -->
+            <div class="timetable-day" data-day="0">
+                <h2><i class="fas fa-calendar-day"></i> Pondělí</h2>
+                <table class="schedule-table">
+                    <thead>
+                        <tr>
+                            <th>Hod.</th>
+                            <th>Čas</th>
+                            <th>Předmět</th>
+                            <th>Učitel</th>
+                            <th>Učebna</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1.</td>
+                            <td>8:00 – 8:45</td>
+                            <td><span class="badge-subject badge-czech">Český jazyk</span></td>
+                            <td>Mgr. Kovářová</td>
+                            <td>A101</td>
+                        </tr>
+                        <tr>
+                            <td>2.</td>
+                            <td>8:55 – 9:40</td>
+                            <td><span class="badge-subject badge-math">Matematika</span></td>
+                            <td>Mgr. Novák</td>
+                            <td>A102</td>
+                        </tr>
+                        <tr class="double-lesson-top">
+                            <td>3.</td>
+                            <td>9:55 – 10:40</td>
+                            <td rowspan="2"><span class="badge-subject badge-english">Anglický jazyk</span><span class="double-tag">dvojhodina</span></td>
+                            <td>Mgr. Holubová</td>
+                            <td>B201</td>
+                        </tr>
+                        <tr class="double-lesson-bottom">
+                            <td>4.</td>
+                            <td>10:50 – 11:35</td>
+                            <td>Mgr. Holubová</td>
+                            <td>B201</td>
+                        </tr>
+                        <tr>
+                            <td>5.</td>
+                            <td>11:45 – 12:30</td>
+                            <td><span class="badge-subject badge-physics">Fyzika</span></td>
+                            <td>Mgr. Bartoš</td>
+                            <td>A105</td>
+                        </tr>
+                        <tr>
+                            <td>6.</td>
+                            <td>12:40 – 13:25</td>
+                            <td><span class="badge-subject badge-history">Dějepis</span></td>
+                            <td>Mgr. Dvořák</td>
+                            <td>A104</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Úterý -->
+            <div class="timetable-day" data-day="1">
+                <h2><i class="fas fa-calendar-day"></i> Úterý</h2>
+                <table class="schedule-table">
+                    <thead>
+                        <tr>
+                            <th>Hod.</th>
+                            <th>Čas</th>
+                            <th>Předmět</th>
+                            <th>Učitel</th>
+                            <th>Učebna</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1.</td>
+                            <td>8:00 – 8:45</td>
+                            <td><span class="badge-subject badge-math">Matematika</span></td>
+                            <td>Mgr. Novák</td>
+                            <td>A102</td>
+                        </tr>
+                        <tr>
+                            <td>2.</td>
+                            <td>8:55 – 9:40</td>
+                            <td><span class="badge-subject badge-czech">Český jazyk</span></td>
+                            <td>Mgr. Kovářová</td>
+                            <td>A101</td>
+                        </tr>
+                        <tr>
+                            <td>3.</td>
+                            <td>9:55 – 10:40</td>
+                            <td><span class="badge-subject badge-chemistry">Chemie</span></td>
+                            <td>Mgr. Kratochvílová</td>
+                            <td>A103</td>
+                        </tr>
+                        <tr>
+                            <td>4.</td>
+                            <td>10:50 – 11:35</td>
+                            <td><span class="badge-subject badge-geography">Zeměpis</span></td>
+                            <td>Mgr. Dvořák</td>
+                            <td>A104</td>
+                        </tr>
+                        <tr>
+                            <td>5.</td>
+                            <td>11:45 – 12:30</td>
+                            <td><span class="badge-subject badge-it">Informatika</span></td>
+                            <td>Ing. Svoboda</td>
+                            <td>PC1</td>
+                        </tr>
+                        <tr>
+                            <td>6.</td>
+                            <td>12:40 – 13:25</td>
+                            <td><span class="badge-subject badge-civics">Občanská výchova</span></td>
+                            <td>Mgr. Pokorná</td>
+                            <td>B202</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Středa -->
+            <div class="timetable-day" data-day="2">
+                <h2><i class="fas fa-calendar-day"></i> Středa</h2>
+                <table class="schedule-table">
+                    <thead>
+                        <tr>
+                            <th>Hod.</th>
+                            <th>Čas</th>
+                            <th>Předmět</th>
+                            <th>Učitel</th>
+                            <th>Učebna</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1.</td>
+                            <td>8:00 – 8:45</td>
+                            <td><span class="badge-subject badge-czech">Český jazyk</span></td>
+                            <td>Mgr. Kovářová</td>
+                            <td>A101</td>
+                        </tr>
+                        <tr>
+                            <td>2.</td>
+                            <td>8:55 – 9:40</td>
+                            <td><span class="badge-subject badge-math">Matematika</span></td>
+                            <td>Mgr. Novák</td>
+                            <td>A102</td>
+                        </tr>
+                        <tr>
+                            <td>3.</td>
+                            <td>9:55 – 10:40</td>
+                            <td><span class="badge-subject badge-biology">Přírodopis</span></td>
+                            <td>Mgr. Kratochvílová</td>
+                            <td>A103</td>
+                        </tr>
+                        <tr class="double-lesson-top">
+                            <td>4.</td>
+                            <td>10:50 – 11:35</td>
+                            <td rowspan="2"><span class="badge-subject badge-pe">Tělesná výchova</span><span class="double-tag">dvojhodina</span></td>
+                            <td>Mgr. Vrána</td>
+                            <td>Tělocvična</td>
+                        </tr>
+                        <tr class="double-lesson-bottom">
+                            <td>5.</td>
+                            <td>11:45 – 12:30</td>
+                            <td>Mgr. Vrána</td>
+                            <td>Tělocvična</td>
+                        </tr>
+                        <tr>
+                            <td>6.</td>
+                            <td>12:40 – 13:25</td>
+                            <td><span class="badge-subject badge-art">Výtvarná výchova</span></td>
+                            <td>Mgr. Pokorná</td>
+                            <td>B203</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Čtvrtek -->
+            <div class="timetable-day" data-day="3">
+                <h2><i class="fas fa-calendar-day"></i> Čtvrtek</h2>
+                <table class="schedule-table">
+                    <thead>
+                        <tr>
+                            <th>Hod.</th>
+                            <th>Čas</th>
+                            <th>Předmět</th>
+                            <th>Učitel</th>
+                            <th>Učebna</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1.</td>
+                            <td>8:00 – 8:45</td>
+                            <td><span class="badge-subject badge-math">Matematika</span></td>
+                            <td>Mgr. Novák</td>
+                            <td>A102</td>
+                        </tr>
+                        <tr>
+                            <td>2.</td>
+                            <td>8:55 – 9:40</td>
+                            <td><span class="badge-subject badge-czech">Český jazyk</span></td>
+                            <td>Mgr. Kovářová</td>
+                            <td>A101</td>
+                        </tr>
+                        <tr>
+                            <td>3.</td>
+                            <td>9:55 – 10:40</td>
+                            <td><span class="badge-subject badge-physics">Fyzika</span></td>
+                            <td>Mgr. Bartoš</td>
+                            <td>A105</td>
+                        </tr>
+                        <tr>
+                            <td>4.</td>
+                            <td>10:50 – 11:35</td>
+                            <td><span class="badge-subject badge-english">Anglický jazyk</span></td>
+                            <td>Mgr. Holubová</td>
+                            <td>B201</td>
+                        </tr>
+                        <tr>
+                            <td>5.</td>
+                            <td>11:45 – 12:30</td>
+                            <td><span class="badge-subject badge-biology">Přírodopis</span></td>
+                            <td>Mgr. Kratochvílová</td>
+                            <td>A103</td>
+                        </tr>
+                        <tr>
+                            <td>6.</td>
+                            <td>12:40 – 13:25</td>
+                            <td><span class="badge-subject badge-art">Výtvarná výchova</span></td>
+                            <td>Mgr. Pokorná</td>
+                            <td>B203</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pátek -->
+            <div class="timetable-day" data-day="4">
+                <h2><i class="fas fa-calendar-day"></i> Pátek</h2>
+                <table class="schedule-table">
+                    <thead>
+                        <tr>
+                            <th>Hod.</th>
+                            <th>Čas</th>
+                            <th>Předmět</th>
+                            <th>Učitel</th>
+                            <th>Učebna</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1.</td>
+                            <td>8:00 – 8:45</td>
+                            <td><span class="badge-subject badge-czech">Český jazyk</span></td>
+                            <td>Mgr. Kovářová</td>
+                            <td>A101</td>
+                        </tr>
+                        <tr>
+                            <td>2.</td>
+                            <td>8:55 – 9:40</td>
+                            <td><span class="badge-subject badge-math">Matematika</span></td>
+                            <td>Mgr. Novák</td>
+                            <td>A102</td>
+                        </tr>
+                        <tr>
+                            <td>3.</td>
+                            <td>9:55 – 10:40</td>
+                            <td><span class="badge-subject badge-chemistry">Chemie</span></td>
+                            <td>Mgr. Kratochvílová</td>
+                            <td>A103</td>
+                        </tr>
+                        <tr>
+                            <td>4.</td>
+                            <td>10:50 – 11:35</td>
+                            <td><span class="badge-subject badge-history">Dějepis</span></td>
+                            <td>Mgr. Dvořák</td>
+                            <td>A104</td>
+                        </tr>
+                        <tr>
+                            <td>5.</td>
+                            <td>11:45 – 12:30</td>
+                            <td><span class="badge-subject badge-music">Hudební výchova</span></td>
+                            <td>Mgr. Pokorná</td>
+                            <td>B202</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <button class="timetable-arrow timetable-next" id="ttNext" aria-label="Další den">
+            <i class="fas fa-chevron-right"></i>
+        </button>
     </div>
 
-    <!-- Úterý -->
-    <div class="schedule-card animate-in">
-        <h2><i class="fas fa-calendar-day"></i> Úterý</h2>
-        <table class="schedule-table">
-            <thead>
-                <tr>
-                    <th>Hod.</th>
-                    <th>Čas</th>
-                    <th>Předmět</th>
-                    <th>Učitel</th>
-                    <th>Učebna</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>1.</td>
-                    <td>8:00 – 8:45</td>
-                    <td><span class="badge-subject badge-math">Matematika</span></td>
-                    <td>Mgr. Novák</td>
-                    <td>A102</td>
-                </tr>
-                <tr>
-                    <td>2.</td>
-                    <td>8:55 – 9:40</td>
-                    <td><span class="badge-subject badge-czech">Český jazyk</span></td>
-                    <td>Mgr. Kovářová</td>
-                    <td>A101</td>
-                </tr>
-                <tr>
-                    <td>3.</td>
-                    <td>9:55 – 10:40</td>
-                    <td><span class="badge-subject badge-chemistry">Chemie</span></td>
-                    <td>Mgr. Kratochvílová</td>
-                    <td>A103</td>
-                </tr>
-                <tr>
-                    <td>4.</td>
-                    <td>10:50 – 11:35</td>
-                    <td><span class="badge-subject badge-geography">Zeměpis</span></td>
-                    <td>Mgr. Dvořák</td>
-                    <td>A104</td>
-                </tr>
-                <tr>
-                    <td>5.</td>
-                    <td>11:45 – 12:30</td>
-                    <td><span class="badge-subject badge-it">Informatika</span></td>
-                    <td>Ing. Svoboda</td>
-                    <td>PC1</td>
-                </tr>
-                <tr>
-                    <td>6.</td>
-                    <td>12:40 – 13:25</td>
-                    <td><span class="badge-subject badge-civics">Občanská výchova</span></td>
-                    <td>Mgr. Pokorná</td>
-                    <td>B202</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Středa -->
-    <div class="schedule-card animate-in">
-        <h2><i class="fas fa-calendar-day"></i> Středa</h2>
-        <table class="schedule-table">
-            <thead>
-                <tr>
-                    <th>Hod.</th>
-                    <th>Čas</th>
-                    <th>Předmět</th>
-                    <th>Učitel</th>
-                    <th>Učebna</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>1.</td>
-                    <td>8:00 – 8:45</td>
-                    <td><span class="badge-subject badge-czech">Český jazyk</span></td>
-                    <td>Mgr. Kovářová</td>
-                    <td>A101</td>
-                </tr>
-                <tr>
-                    <td>2.</td>
-                    <td>8:55 – 9:40</td>
-                    <td><span class="badge-subject badge-english">Anglický jazyk</span></td>
-                    <td>Mgr. Holubová</td>
-                    <td>B201</td>
-                </tr>
-                <tr>
-                    <td>3.</td>
-                    <td>9:55 – 10:40</td>
-                    <td><span class="badge-subject badge-math">Matematika</span></td>
-                    <td>Mgr. Novák</td>
-                    <td>A102</td>
-                </tr>
-                <tr>
-                    <td>4.</td>
-                    <td>10:50 – 11:35</td>
-                    <td><span class="badge-subject badge-biology">Přírodopis</span></td>
-                    <td>Mgr. Kratochvílová</td>
-                    <td>A103</td>
-                </tr>
-                <tr>
-                    <td>5.</td>
-                    <td>11:45 – 12:30</td>
-                    <td><span class="badge-subject badge-art">Výtvarná výchova</span></td>
-                    <td>Mgr. Pokorná</td>
-                    <td>B203</td>
-                </tr>
-                <tr>
-                    <td>6.</td>
-                    <td>12:40 – 13:25</td>
-                    <td><span class="badge-subject badge-art">Výtvarná výchova</span></td>
-                    <td>Mgr. Pokorná</td>
-                    <td>B203</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Čtvrtek -->
-    <div class="schedule-card animate-in">
-        <h2><i class="fas fa-calendar-day"></i> Čtvrtek</h2>
-        <table class="schedule-table">
-            <thead>
-                <tr>
-                    <th>Hod.</th>
-                    <th>Čas</th>
-                    <th>Předmět</th>
-                    <th>Učitel</th>
-                    <th>Učebna</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>1.</td>
-                    <td>8:00 – 8:45</td>
-                    <td><span class="badge-subject badge-math">Matematika</span></td>
-                    <td>Mgr. Novák</td>
-                    <td>A102</td>
-                </tr>
-                <tr>
-                    <td>2.</td>
-                    <td>8:55 – 9:40</td>
-                    <td><span class="badge-subject badge-czech">Český jazyk</span></td>
-                    <td>Mgr. Kovářová</td>
-                    <td>A101</td>
-                </tr>
-                <tr>
-                    <td>3.</td>
-                    <td>9:55 – 10:40</td>
-                    <td><span class="badge-subject badge-physics">Fyzika</span></td>
-                    <td>Mgr. Bartoš</td>
-                    <td>A105</td>
-                </tr>
-                <tr>
-                    <td>4.</td>
-                    <td>10:50 – 11:35</td>
-                    <td><span class="badge-subject badge-english">Anglický jazyk</span></td>
-                    <td>Mgr. Holubová</td>
-                    <td>B201</td>
-                </tr>
-                <tr>
-                    <td>5.</td>
-                    <td>11:45 – 12:30</td>
-                    <td><span class="badge-subject badge-biology">Přírodopis</span></td>
-                    <td>Mgr. Kratochvílová</td>
-                    <td>A103</td>
-                </tr>
-                <tr>
-                    <td>6.</td>
-                    <td>12:40 – 13:25</td>
-                    <td><span class="badge-subject badge-pe">Tělesná výchova</span></td>
-                    <td>Mgr. Vrána</td>
-                    <td>Tělocvična</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Pátek -->
-    <div class="schedule-card animate-in">
-        <h2><i class="fas fa-calendar-day"></i> Pátek</h2>
-        <table class="schedule-table">
-            <thead>
-                <tr>
-                    <th>Hod.</th>
-                    <th>Čas</th>
-                    <th>Předmět</th>
-                    <th>Učitel</th>
-                    <th>Učebna</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>1.</td>
-                    <td>8:00 – 8:45</td>
-                    <td><span class="badge-subject badge-czech">Český jazyk</span></td>
-                    <td>Mgr. Kovářová</td>
-                    <td>A101</td>
-                </tr>
-                <tr>
-                    <td>2.</td>
-                    <td>8:55 – 9:40</td>
-                    <td><span class="badge-subject badge-math">Matematika</span></td>
-                    <td>Mgr. Novák</td>
-                    <td>A102</td>
-                </tr>
-                <tr>
-                    <td>3.</td>
-                    <td>9:55 – 10:40</td>
-                    <td><span class="badge-subject badge-chemistry">Chemie</span></td>
-                    <td>Mgr. Kratochvílová</td>
-                    <td>A103</td>
-                </tr>
-                <tr>
-                    <td>4.</td>
-                    <td>10:50 – 11:35</td>
-                    <td><span class="badge-subject badge-history">Dějepis</span></td>
-                    <td>Mgr. Dvořák</td>
-                    <td>A104</td>
-                </tr>
-                <tr>
-                    <td>5.</td>
-                    <td>11:45 – 12:30</td>
-                    <td><span class="badge-subject badge-music">Hudební výchova</span></td>
-                    <td>Mgr. Pokorná</td>
-                    <td>B202</td>
-                </tr>
-            </tbody>
-        </table>
+    <div class="timetable-dots" id="ttDots">
+        <button class="tt-dot active" data-day="0">Po</button>
+        <button class="tt-dot" data-day="1">Út</button>
+        <button class="tt-dot" data-day="2">St</button>
+        <button class="tt-dot" data-day="3">Čt</button>
+        <button class="tt-dot" data-day="4">Pá</button>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const days = document.querySelectorAll('.timetable-day');
+            const dots = document.querySelectorAll('.tt-dot');
+            const prev = document.getElementById('ttPrev');
+            const next = document.getElementById('ttNext');
+            let current = new Date().getDay() - 1;
+            if (current < 0 || current > 4) current = 0;
+
+            function show(i) {
+                current = Math.max(0, Math.min(4, i));
+                days.forEach((d, idx) => {
+                    d.classList.toggle('active', idx === current);
+                });
+                dots.forEach((d, idx) => {
+                    d.classList.toggle('active', idx === current);
+                });
+                prev.disabled = current === 0;
+                next.disabled = current === 4;
+            }
+
+            prev.addEventListener('click', () => show(current - 1));
+            next.addEventListener('click', () => show(current + 1));
+            dots.forEach(d => d.addEventListener('click', () => show(+d.dataset.day)));
+
+            show(current);
+        })();
+    </script>
+}

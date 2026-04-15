@@ -1080,6 +1080,124 @@ a:hover {
     color: var(--text-secondary);
 }
 
+/* Timetable Slider */
+.timetable-slider {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+}
+
+.timetable-viewport {
+    flex: 1;
+    overflow: hidden;
+    min-width: 0;
+}
+
+.timetable-day {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.timetable-day.active {
+    display: block;
+}
+
+.timetable-day h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-primary);
+}
+
+.timetable-arrow {
+    width: 48px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.timetable-prev {
+    border-radius: var(--radius-md) 0 0 var(--radius-md);
+    border-right: none;
+}
+
+.timetable-next {
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    border-left: none;
+}
+
+.timetable-arrow:hover:not(:disabled) {
+    background: rgba(37, 99, 235, 0.15);
+    color: var(--primary-light);
+}
+
+.timetable-arrow:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* Day dots */
+.timetable-dots {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1.25rem;
+}
+
+.tt-dot {
+    padding: 0.4rem 0.9rem;
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.tt-dot.active {
+    background: var(--primary-gradient);
+    color: white;
+    border-color: transparent;
+}
+
+.tt-dot:hover:not(.active) {
+    background: rgba(37, 99, 235, 0.1);
+    border-color: rgba(37, 99, 235, 0.3);
+    color: var(--primary-light);
+}
+
+/* Double lessons */
+.double-lesson-top td {
+    border-bottom: none !important;
+}
+
+.double-lesson-bottom td {
+    padding-top: 0.35rem;
+}
+
+.double-tag {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: 0.25rem;
+}
+
 /* --- DASHBOARD QUICK LINKS --- */
 .dashboard-quick-links {
     display: flex;
@@ -1111,6 +1229,133 @@ a:hover {
 .quick-link-card i {
     font-size: 1.1rem;
     color: var(--primary-light);
+}
+
+/* --- CAFETERIA PAGE --- */
+.cafeteria-page {
+    padding: 100px 1.5rem 60px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.cafeteria-header {
+    margin-bottom: 2rem;
+}
+
+.cafeteria-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.cafeteria-header p {
+    color: var(--text-secondary);
+}
+
+.cafeteria-info {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+}
+
+.cafeteria-info .info-card {
+    flex: 1;
+    min-width: 200px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    backdrop-filter: blur(10px);
+}
+
+.cafeteria-info .info-card i {
+    font-size: 1.3rem;
+    color: var(--primary-light);
+    flex-shrink: 0;
+}
+
+.cafeteria-info .info-card strong {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    margin-bottom: 0.1rem;
+}
+
+.cafeteria-info .info-card span {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.menu-week h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.menu-day {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    margin-bottom: 1rem;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    transition: var(--transition);
+}
+
+.menu-day:hover {
+    border-color: rgba(37, 99, 235, 0.3);
+}
+
+.menu-day-header {
+    padding: 0.85rem 1.25rem;
+    background: rgba(37, 99, 235, 0.08);
+    border-bottom: 1px solid var(--border-light);
+}
+
+.menu-day-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+}
+
+.menu-day-body {
+    padding: 0.75rem 1.25rem;
+}
+
+.menu-item {
+    display: flex;
+    gap: 1rem;
+    padding: 0.5rem 0;
+    align-items: baseline;
+}
+
+.menu-item:not(:last-child) {
+    border-bottom: 1px solid var(--border-light);
+}
+
+.menu-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--primary-light);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    min-width: 65px;
+    flex-shrink: 0;
+}
+
+.menu-food {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
 }
 
 /* --- PROFILE PAGE --- */
