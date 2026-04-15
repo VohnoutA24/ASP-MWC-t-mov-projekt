@@ -1,0 +1,179 @@
+@model sum.Models.ComposeMessageViewModel
+@{
+    ViewData["Title"] = "Nová zpráva";
+    var users = ViewBag.Users as List<sum.Models.User> ?? new List<sum.Models.User>();
+}
+
+<div class="messages-page">
+    <div class="messages-header animate-in">
+        <h1><i class="fas fa-pen-to-square"></i> Nová zpráva</h1>
+        <p>Napište zprávu ostatním žákům nebo učitelům</p>
+    </div>
+
+    <div class="compose-container animate-in animate-delay-1">
+        <div class="compose-card">
+            <form asp-action="Compose" method="post" enctype="multipart/form-data" id="composeForm">
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="All" class="validation-summary-errors"></div>
+
+                <!-- Recipient -->
+                <div class="form-group">
+                    <label asp-for="RecipientId">
+                        <i class="fas fa-user"></i> Příjemce <span class="required">*</span>
+                    </label>
+                    <div class="recipient-select-wrapper">
+                        <select asp-for="RecipientId" class="form-input compose-select" id="recipientSelect">
+                            <option value="">— Vyberte příjemce —</option>
+                            @foreach (var user in users)
+                            {
+                                var displayName = !string.IsNullOrEmpty(user.FullName)
+                                    ? $"{user.FullName} ({user.Email})"
+                                    : user.Email;
+                                var roleBadge = user.Role == "Učitel" ? " 👨‍🏫" : "";
+                                <option value="@user.Id"
+                                    data-email="@user.Email"
+                                    data-name="@(user.FullName ?? user.Email)"
+                                    data-role="@user.Role"
+                                    selected="@(Model.RecipientId == user.Id ? "selected" : null)">
+                                    @displayName@roleBadge
+                                </option>
+                            }
+                        </select>
+                    </div>
+                    <span asp-validation-for="RecipientId" class="field-validation-error"></span>
+                </div>
+
+                <!-- Subject -->
+                <div class="form-group">
+                    <label asp-for="Subject">
+                        <i class="fas fa-heading"></i> Předmět <span class="required">*</span>
+                    </label>
+                    <div class="form-input-wrapper">
+                        <input asp-for="Subject" class="form-input compose-input" placeholder="Předmět zprávy..." id="subjectInput" />
+                    </div>
+                    <span asp-validation-for="Subject" class="field-validation-error"></span>
+                </div>
+
+                <!-- Body -->
+                <div class="form-group">
+                    <label asp-for="Body">
+                        <i class="fas fa-align-left"></i> Zpráva
+                    </label>
+                    <textarea asp-for="Body" class="form-input compose-textarea" rows="10" placeholder="Napište svoji zprávu..." id="bodyInput"></textarea>
+                </div>
+
+                <!-- Attachment -->
+                <div class="form-group">
+                    <label asp-for="Attachment">
+                        <i class="fas fa-paperclip"></i> Příloha <span class="attachment-hint">(max 25 MB)</span>
+                    </label>
+                    <div class="attachment-drop-zone" id="dropZone">
+                        <input asp-for="Attachment" type="file" class="attachment-file-input" id="attachmentInput" />
+                        <div class="drop-zone-content" id="dropZoneContent">
+                            <i class="fas fa-cloud-arrow-up"></i>
+                            <p>Přetáhněte soubor sem nebo <span class="drop-zone-link">vyberte soubor</span></p>
+                            <span class="drop-zone-hint">Maximální velikost: 25 MB</span>
+                        </div>
+                        <div class="drop-zone-file" id="dropZoneFile" style="display:none;">
+                            <i class="fas fa-file"></i>
+                            <div class="file-info">
+                                <span class="file-name" id="fileName"></span>
+                                <span class="file-size" id="fileSize"></span>
+                            </div>
+                            <button type="button" class="file-remove" id="fileRemove" title="Odstranit">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <span asp-validation-for="Attachment" class="field-validation-error"></span>
+                </div>
+
+                <!-- Actions -->
+                <div class="compose-actions">
+                    <button type="submit" class="btn-send" id="sendBtn">
+                        <i class="fas fa-paper-plane"></i> Odeslat zprávu
+                    </button>
+                    <a asp-action="Index" class="btn-cancel" id="cancelBtn">
+                        <i class="fas fa-times"></i> Zrušit
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('attachmentInput');
+    const dropContent = document.getElementById('dropZoneContent');
+    const dropFile = document.getElementById('dropZoneFile');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const fileRemove = document.getElementById('fileRemove');
+
+    function formatBytes(bytes) {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+
+    function showFile(file) {
+        if (file.size > 25 * 1024 * 1024) {
+            alert('Soubor je příliš velký! Maximální velikost je 25 MB.');
+            fileInput.value = '';
+            return;
+        }
+        fileName.textContent = file.name;
+        fileSize.textContent = formatBytes(file.size);
+        dropContent.style.display = 'none';
+        dropFile.style.display = 'flex';
+    }
+
+    function clearFile() {
+        fileInput.value = '';
+        dropContent.style.display = '';
+        dropFile.style.display = 'none';
+    }
+
+    fileInput.addEventListener('change', function() {
+        if (this.files.length > 0) {
+            showFile(this.files[0]);
+        }
+    });
+
+    fileRemove.addEventListener('click', clearFile);
+
+    // Drag and drop
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => {
+        dropZone.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); });
+    });
+
+    ['dragenter', 'dragover'].forEach(evt => {
+        dropZone.addEventListener(evt, () => dropZone.classList.add('drag-over'));
+    });
+
+    ['dragleave', 'drop'].forEach(evt => {
+        dropZone.addEventListener(evt, () => dropZone.classList.remove('drag-over'));
+    });
+
+    dropZone.addEventListener('drop', function(e) {
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            showFile(files[0]);
+        }
+    });
+
+    dropZone.addEventListener('click', function(e) {
+        if (e.target !== fileRemove && !fileRemove.contains(e.target)) {
+            fileInput.click();
+        }
+    });
+});
+</script>
+}

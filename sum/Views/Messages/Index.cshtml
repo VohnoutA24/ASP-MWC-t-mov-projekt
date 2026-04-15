@@ -1,0 +1,93 @@
+@model List<sum.Models.Message>
+@{
+    ViewData["Title"] = "Příchozí pošta";
+    var activeTab = ViewBag.ActiveTab as string ?? "inbox";
+    var unreadCount = (int)(ViewBag.UnreadCount ?? 0);
+}
+
+<div class="messages-page">
+    <div class="messages-header animate-in">
+        <h1><i class="fas fa-envelope"></i> Školní pošta</h1>
+        <p>Vaše příchozí zprávy</p>
+    </div>
+
+    <div class="messages-layout animate-in animate-delay-1">
+        <!-- Sidebar -->
+        <aside class="messages-sidebar">
+            <a asp-action="Compose" class="btn-compose" id="composeBtn">
+                <i class="fas fa-pen-to-square"></i> Nová zpráva
+            </a>
+            <nav class="messages-nav">
+                <a asp-action="Index" class="msg-nav-item @(activeTab == "inbox" ? "active" : "")" id="inboxLink">
+                    <i class="fas fa-inbox"></i>
+                    <span>Příchozí</span>
+                    @if (unreadCount > 0)
+                    {
+                        <span class="msg-badge">@unreadCount</span>
+                    }
+                </a>
+                <a asp-action="Sent" class="msg-nav-item @(activeTab == "sent" ? "active" : "")" id="sentLink">
+                    <i class="fas fa-paper-plane"></i>
+                    <span>Odeslaná</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Message List -->
+        <div class="messages-content">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert-success">
+                    <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+                </div>
+            }
+
+            @if (Model.Count == 0)
+            {
+                <div class="messages-empty">
+                    <div class="empty-icon">
+                        <i class="fas fa-inbox"></i>
+                    </div>
+                    <h3>Žádné zprávy</h3>
+                    <p>Vaše schránka je prázdná. Začněte konverzaci!</p>
+                    <a asp-action="Compose" class="btn-primary-custom">
+                        <i class="fas fa-pen"></i> Napsat zprávu
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="messages-list">
+                    @foreach (var msg in Model)
+                    {
+                        <a asp-action="Read" asp-route-id="@msg.Id" class="message-row @(!msg.IsRead ? "unread" : "")" id="msg-@msg.Id">
+                            <div class="msg-avatar">
+                                <i class="fas fa-user-circle"></i>
+                            </div>
+                            <div class="msg-info">
+                                <div class="msg-top">
+                                    <span class="msg-sender">@(msg.Sender?.FullName ?? msg.Sender?.Email ?? "Neznámý")</span>
+                                    <span class="msg-date">@msg.SentAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</span>
+                                </div>
+                                <div class="msg-subject">
+                                    @if (!msg.IsRead)
+                                    {
+                                        <span class="unread-dot"></span>
+                                    }
+                                    @msg.Subject
+                                </div>
+                                <div class="msg-preview">
+                                    @if (msg.AttachmentFileName != null)
+                                    {
+                                        <i class="fas fa-paperclip msg-attachment-icon"></i>
+                                    }
+                                    @(string.IsNullOrEmpty(msg.Body) ? "Žádný obsah" : (msg.Body.Length > 100 ? msg.Body.Substring(0, 100) + "…" : msg.Body))
+                                </div>
+                            </div>
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

@@ -1,0 +1,88 @@
+@model List<sum.Models.Message>
+@{
+    ViewData["Title"] = "Odeslaná pošta";
+    var activeTab = ViewBag.ActiveTab as string ?? "sent";
+}
+
+<div class="messages-page">
+    <div class="messages-header animate-in">
+        <h1><i class="fas fa-paper-plane"></i> Odeslaná pošta</h1>
+        <p>Vaše odeslané zprávy</p>
+    </div>
+
+    <div class="messages-layout animate-in animate-delay-1">
+        <!-- Sidebar -->
+        <aside class="messages-sidebar">
+            <a asp-action="Compose" class="btn-compose" id="composeBtnSent">
+                <i class="fas fa-pen-to-square"></i> Nová zpráva
+            </a>
+            <nav class="messages-nav">
+                <a asp-action="Index" class="msg-nav-item @(activeTab == "inbox" ? "active" : "")" id="inboxLinkSent">
+                    <i class="fas fa-inbox"></i>
+                    <span>Příchozí</span>
+                </a>
+                <a asp-action="Sent" class="msg-nav-item @(activeTab == "sent" ? "active" : "")" id="sentLinkSent">
+                    <i class="fas fa-paper-plane"></i>
+                    <span>Odeslaná</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Message List -->
+        <div class="messages-content">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert-success">
+                    <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+                </div>
+            }
+
+            @if (Model.Count == 0)
+            {
+                <div class="messages-empty">
+                    <div class="empty-icon">
+                        <i class="fas fa-paper-plane"></i>
+                    </div>
+                    <h3>Žádné odeslané zprávy</h3>
+                    <p>Zatím jste neodeslali žádnou zprávu.</p>
+                    <a asp-action="Compose" class="btn-primary-custom">
+                        <i class="fas fa-pen"></i> Napsat zprávu
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="messages-list">
+                    @foreach (var msg in Model)
+                    {
+                        <a asp-action="Read" asp-route-id="@msg.Id" class="message-row" id="msg-sent-@msg.Id">
+                            <div class="msg-avatar sent-avatar">
+                                <i class="fas fa-user-circle"></i>
+                            </div>
+                            <div class="msg-info">
+                                <div class="msg-top">
+                                    <span class="msg-sender">Komu: @(msg.Recipient?.FullName ?? msg.Recipient?.Email ?? "Neznámý")</span>
+                                    <span class="msg-date">@msg.SentAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</span>
+                                </div>
+                                <div class="msg-subject">
+                                    @msg.Subject
+                                    @if (msg.IsRead)
+                                    {
+                                        <span class="read-indicator" title="Přečteno"><i class="fas fa-check-double"></i></span>
+                                    }
+                                </div>
+                                <div class="msg-preview">
+                                    @if (msg.AttachmentFileName != null)
+                                    {
+                                        <i class="fas fa-paperclip msg-attachment-icon"></i>
+                                    }
+                                    @(string.IsNullOrEmpty(msg.Body) ? "Žádný obsah" : (msg.Body.Length > 100 ? msg.Body.Substring(0, 100) + "…" : msg.Body))
+                                </div>
+                            </div>
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

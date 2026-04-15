@@ -1,0 +1,103 @@
+@model sum.Models.Message
+@{
+    ViewData["Title"] = Model.Subject;
+    var currentUserId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
+    var isSender = Model.SenderId == currentUserId;
+}
+
+<div class="messages-page">
+    <div class="messages-header animate-in">
+        <div class="read-nav">
+            @if (isSender)
+            {
+                <a asp-action="Sent" class="btn-back" id="backToSent">
+                    <i class="fas fa-arrow-left"></i> Zpět na odeslanou poštu
+                </a>
+            }
+            else
+            {
+                <a asp-action="Index" class="btn-back" id="backToInbox">
+                    <i class="fas fa-arrow-left"></i> Zpět na příchozí poštu
+                </a>
+            }
+        </div>
+    </div>
+
+    <div class="read-container animate-in animate-delay-1">
+        <div class="read-card">
+            <!-- Header -->
+            <div class="read-card-header">
+                <h1 class="read-subject">@Model.Subject</h1>
+                <div class="read-meta">
+                    <div class="read-participants">
+                        <div class="read-avatar">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <div class="read-participant-info">
+                            <div class="read-from">
+                                <strong>Od:</strong> @(Model.Sender?.FullName ?? Model.Sender?.Email ?? "Neznámý")
+                                <span class="read-email">(@(Model.Sender?.Email))</span>
+                            </div>
+                            <div class="read-to">
+                                <strong>Komu:</strong> @(Model.Recipient?.FullName ?? Model.Recipient?.Email ?? "Neznámý")
+                                <span class="read-email">(@(Model.Recipient?.Email))</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="read-date">
+                        <i class="fas fa-clock"></i>
+                        @Model.SentAt.ToLocalTime().ToString("dd. MMMM yyyy, HH:mm")
+                    </div>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="read-body">
+                @if (!string.IsNullOrEmpty(Model.Body))
+                {
+                    <pre class="read-body-text">@Model.Body</pre>
+                }
+                else
+                {
+                    <p class="read-no-body"><em>Tato zpráva nemá žádný obsah.</em></p>
+                }
+            </div>
+
+            <!-- Attachment -->
+            @if (Model.AttachmentFileName != null)
+            {
+                <div class="read-attachment">
+                    <div class="attachment-card">
+                        <div class="attachment-icon">
+                            <i class="fas fa-file"></i>
+                        </div>
+                        <div class="attachment-info">
+                            <span class="attachment-name">@Model.AttachmentFileName</span>
+                            <span class="attachment-size">
+                                @{
+                                    var sizeKb = (Model.AttachmentSize ?? 0) / 1024.0;
+                                    var sizeMb = sizeKb / 1024.0;
+                                    var sizeText = sizeMb >= 1 ? $"{sizeMb:F1} MB" : $"{sizeKb:F0} KB";
+                                }
+                                @sizeText
+                            </span>
+                        </div>
+                        <a asp-action="Download" asp-route-id="@Model.Id" class="attachment-download" id="downloadAttachment">
+                            <i class="fas fa-download"></i> Stáhnout
+                        </a>
+                    </div>
+                </div>
+            }
+
+            <!-- Actions -->
+            <div class="read-actions">
+                @if (!isSender)
+                {
+                    <a asp-action="Compose" asp-route-replyTo="@Model.Id" class="btn-reply" id="replyBtn">
+                        <i class="fas fa-reply"></i> Odpovědět
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+</div>
