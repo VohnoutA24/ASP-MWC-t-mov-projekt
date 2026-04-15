@@ -1,0 +1,16 @@
+@{
+    ViewData["Title"] = "Přístup odepřen";
+}
+
+<div class="access-denied-page">
+    <div>
+        <div class="access-denied-icon animate-in">
+            <i class="fas fa-ban"></i>
+        </div>
+        <h1 class="animate-in animate-delay-1">Přístup odepřen</h1>
+        <p class="animate-in animate-delay-2">Nemáte oprávnění pro zobrazení této stránky.</p>
+        <a asp-controller="Home" asp-action="Index" class="btn-primary-custom animate-in animate-delay-3" id="accessDeniedHomeBtn">
+            <i class="fas fa-home"></i> Zpět na hlavní stránku
+        </a>
+    </div>
+</div>

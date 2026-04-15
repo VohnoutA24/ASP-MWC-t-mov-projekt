@@ -11,6 +11,14 @@ namespace sum.Controllers
             return View();
         }
 
+        public IActionResult Dashboard()
+        {
+            if (User.Identity?.IsAuthenticated != true)
+                return RedirectToAction("Login", "Account");
+
+            return View();
+        }
+
         public IActionResult Privacy()
         {
             return View();

@@ -1,47 +1,118 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="cs">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - sum</title>
+    <meta name="description" content="Školní informační systém - přihlášení, rozvrh, známky a další." />
+    <title>@ViewData["Title"] - Školní portál</title>
     <script type="importmap"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/sum.styles.css" asp-append-version="true" />
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">sum</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
+        <nav class="school-nav" id="mainNav">
+            <div class="nav-container">
+                <a class="nav-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                    <div class="brand-icon">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <span class="brand-text">Školní portál</span>
+                </a>
+                <button class="nav-toggle" type="button" id="navToggle" aria-label="Toggle navigation">
+                    <span></span>
+                    <span></span>
+                    <span></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                <div class="nav-menu" id="navMenu">
+                    <ul class="nav-links">
+                        <li>
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
+                                <i class="fas fa-home"></i> Domů
+                            </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li>
+                                <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Dashboard">
+                                    <i class="fas fa-tachometer-alt"></i> Nástěnka
+                                </a>
+                            </li>
+                            <li>
+                                <a class="nav-link" asp-area="" asp-controller="Account" asp-action="Profile">
+                                    <i class="fas fa-user"></i> Profil
+                                </a>
+                            </li>
+                        }
                     </ul>
+                    <div class="nav-auth">
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <div class="user-badge">
+                                <div class="user-avatar">
+                                    <i class="fas fa-user-circle"></i>
+                                </div>
+                                <span class="user-name">@User.Identity.Name</span>
+                            </div>
+                            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn-logout" id="logoutBtn">
+                                    <i class="fas fa-sign-out-alt"></i> Odhlásit
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <a class="btn-nav-login" asp-controller="Account" asp-action="Login" id="navLoginBtn">
+                                <i class="fas fa-sign-in-alt"></i> Přihlásit
+                            </a>
+                            <a class="btn-nav-register" asp-controller="Account" asp-action="Register" id="navRegisterBtn">
+                                <i class="fas fa-user-plus"></i> Registrace
+                            </a>
+                        }
+                    </div>
                 </div>
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - sum - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <main role="main">
+        @RenderBody()
+    </main>
+
+    <footer class="school-footer">
+        <div class="footer-content">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <h3><i class="fas fa-graduation-cap"></i> Školní portál</h3>
+                    <p>Moderní školní informační systém pro správu studia, známek a komunikace.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Rychlé odkazy</h3>
+                    <ul>
+                        <li><a asp-controller="Home" asp-action="Index">Domů</a></li>
+                        <li><a asp-controller="Account" asp-action="Login">Přihlášení</a></li>
+                        <li><a asp-controller="Account" asp-action="Register">Registrace</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Kontakt</h3>
+                    <p><i class="fas fa-envelope"></i> info&#64;skola.cz</p>
+                    <p><i class="fas fa-phone"></i> +420 123 456 789</p>
+                    <p><i class="fas fa-map-marker-alt"></i> Školní 123, Praha</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Školní portál. Všechna práva vyhrazena.</p>
+            </div>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

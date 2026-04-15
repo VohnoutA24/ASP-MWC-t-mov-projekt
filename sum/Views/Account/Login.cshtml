@@ -1,0 +1,66 @@
+@model sum.Models.LoginViewModel
+@{
+    ViewData["Title"] = "Přihlášení";
+}
+
+<div class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card animate-in">
+            <div class="auth-header">
+                <div class="auth-icon">
+                    <i class="fas fa-sign-in-alt"></i>
+                </div>
+                <h1>Přihlášení</h1>
+                <p>Zadejte své přihlašovací údaje</p>
+            </div>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert-success">
+                    <i class="fas fa-check-circle"></i>
+                    @TempData["SuccessMessage"]
+                </div>
+            }
+
+            <form asp-action="Login" asp-controller="Account" method="post" id="loginForm">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
+
+                <div class="form-group">
+                    <label asp-for="Username">Uživatelské jméno <span class="required">*</span></label>
+                    <div class="form-input-wrapper">
+                        <input asp-for="Username" class="form-input" id="loginUsername" placeholder="Zadejte uživatelské jméno" autocomplete="username" />
+                        <i class="fas fa-user input-icon"></i>
+                    </div>
+                    <span asp-validation-for="Username" class="field-validation-error"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Password">Heslo <span class="required">*</span></label>
+                    <div class="form-input-wrapper">
+                        <input asp-for="Password" class="form-input" id="loginPassword" placeholder="Zadejte heslo" autocomplete="current-password" />
+                        <i class="fas fa-lock input-icon"></i>
+                    </div>
+                    <span asp-validation-for="Password" class="field-validation-error"></span>
+                </div>
+
+                <div class="form-remember">
+                    <input asp-for="RememberMe" id="rememberMe" />
+                    <label asp-for="RememberMe">Zapamatovat si mě</label>
+                </div>
+
+                <button type="submit" class="btn-auth" id="loginSubmitBtn">
+                    <i class="fas fa-arrow-right"></i> Přihlásit se
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <p>Nemáte účet? <a asp-controller="Account" asp-action="Register" id="goToRegisterLink">Zaregistrujte se</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

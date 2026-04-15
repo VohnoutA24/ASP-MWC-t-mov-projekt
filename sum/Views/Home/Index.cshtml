@@ -1,8 +1,106 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@{
+    ViewData["Title"] = "Domů";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<section class="hero">
+    <div class="hero-content">
+        <div class="hero-badge animate-in">
+            <i class="fas fa-star"></i>
+            Školní rok 2025/2026
+        </div>
+        <h1 class="animate-in animate-delay-1">Vítejte na školním<br>informačním portálu</h1>
+        <p class="animate-in animate-delay-2">
+            Váš centrální přístupový bod pro rozvrhy, známky, docházku a komunikaci s učiteli.
+            Přihlaste se a mějte vše na jednom místě.
+        </p>
+        <div class="hero-buttons animate-in animate-delay-3">
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <a asp-controller="Home" asp-action="Dashboard" class="btn-primary-custom" id="heroGoToDashboard">
+                    <i class="fas fa-tachometer-alt"></i> Přejít na nástěnku
+                </a>
+            }
+            else
+            {
+                <a asp-controller="Account" asp-action="Login" class="btn-primary-custom" id="heroLoginBtn">
+                    <i class="fas fa-sign-in-alt"></i> Přihlásit se
+                </a>
+                <a asp-controller="Account" asp-action="Register" class="btn-secondary-custom" id="heroRegisterBtn">
+                    <i class="fas fa-user-plus"></i> Vytvořit účet
+                </a>
+            }
+        </div>
+    </div>
+</section>
+
+<section class="features-section">
+    <div class="section-header animate-in">
+        <h2>Co nabízíme</h2>
+        <p>Kompletní školní systém pro studenty, učitele i rodiče</p>
+    </div>
+    <div class="features-grid">
+        <div class="feature-card animate-in animate-delay-1">
+            <div class="feature-icon blue">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+            <h3>Rozvrh hodin</h3>
+            <p>Aktuální rozvrh vždy po ruce. Přehledný a s možností přizpůsobení zobrazení.</p>
+        </div>
+        <div class="feature-card animate-in animate-delay-2">
+            <div class="feature-icon purple">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <h3>Známky a hodnocení</h3>
+            <p>Přehled všech známek, průměry a trendy vašeho studijního výkonu.</p>
+        </div>
+        <div class="feature-card animate-in animate-delay-3">
+            <div class="feature-icon green">
+                <i class="fas fa-clipboard-check"></i>
+            </div>
+            <h3>Docházka</h3>
+            <p>Sledování docházky, automatické omluvenky a notifikace pro rodiče.</p>
+        </div>
+        <div class="feature-card animate-in animate-delay-1">
+            <div class="feature-icon amber">
+                <i class="fas fa-comments"></i>
+            </div>
+            <h3>Komunikace</h3>
+            <p>Zprávy mezi studenty a učiteli. Třídní nástěnka a skupinové konverzace.</p>
+        </div>
+        <div class="feature-card animate-in animate-delay-2">
+            <div class="feature-icon cyan">
+                <i class="fas fa-book-open"></i>
+            </div>
+            <h3>Studijní materiály</h3>
+            <p>Přístup k učebním materiálům, prezentacím a domácím úkolům online.</p>
+        </div>
+        <div class="feature-card animate-in animate-delay-3">
+            <div class="feature-icon rose">
+                <i class="fas fa-bell"></i>
+            </div>
+            <h3>Upozornění</h3>
+            <p>Okamžitá upozornění na nové známky, změny v rozvrhu a důležité události.</p>
+        </div>
+    </div>
+</section>
+
+<section class="stats-section">
+    <div class="stats-grid">
+        <div class="stat-card animate-in animate-delay-1">
+            <div class="stat-number">850+</div>
+            <div class="stat-label">Aktivních studentů</div>
+        </div>
+        <div class="stat-card animate-in animate-delay-2">
+            <div class="stat-number">65</div>
+            <div class="stat-label">Pedagogů</div>
+        </div>
+        <div class="stat-card animate-in animate-delay-3">
+            <div class="stat-number">32</div>
+            <div class="stat-label">Tříd</div>
+        </div>
+        <div class="stat-card animate-in animate-delay-4">
+            <div class="stat-number">98%</div>
+            <div class="stat-label">Spokojenost</div>
+        </div>
+    </div>
+</section>
