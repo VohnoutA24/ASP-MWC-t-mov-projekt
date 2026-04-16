@@ -50,17 +50,11 @@ namespace sum.Controllers
 
         public IActionResult Timetable()
         {
-            if (User.Identity?.IsAuthenticated != true)
-                return RedirectToAction("Login", "Account");
-
             return View();
         }
 
         public IActionResult Cafeteria()
         {
-            if (User.Identity?.IsAuthenticated != true)
-                return RedirectToAction("Login", "Account");
-
             return View();
         }
 
