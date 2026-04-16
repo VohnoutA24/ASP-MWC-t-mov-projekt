@@ -3,32 +3,81 @@
 }
 
 <section class="hero">
-    <div class="hero-content">
-        <div class="hero-badge animate-in">
-            <i class="fas fa-star"></i>
-            Školní rok 2025/2026
+    <div class="hero-inner">
+        <div class="hero-content">
+            <div class="hero-badge animate-in">
+                <i class="fas fa-star"></i>
+                Školní rok 2025/2026
+            </div>
+            <h1 class="animate-in animate-delay-1">Vítejte na ZŠ<br>Chvalkovice!</h1>
+            <p class="animate-in animate-delay-2">
+                Jsme základní škola zaměřená na kvalitní vzdělávání.
+                Přihlaste se a získejte přístup k rozvrhům, známkám, jídelníčku
+                a komunikaci s učiteli — vše na jednom místě.
+            </p>
+            <div class="hero-buttons animate-in animate-delay-3">
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <a asp-controller="Home" asp-action="Dashboard" class="btn-primary-custom" id="heroGoToDashboard">
+                        <i class="fas fa-tachometer-alt"></i> Přejít na nástěnku
+                    </a>
+                }
+                else
+                {
+                    <a asp-controller="Account" asp-action="Login" class="btn-primary-custom" id="heroLoginBtn">
+                        <i class="fas fa-sign-in-alt"></i> Přihlásit se
+                    </a>
+                    <a asp-controller="Account" asp-action="Register" class="btn-secondary-custom" id="heroRegisterBtn">
+                        <i class="fas fa-user-plus"></i> Vytvořit účet
+                    </a>
+                }
+            </div>
         </div>
-        <h1 class="animate-in animate-delay-1">Základní škola<br>Chvalkovice</h1>
-        <p class="animate-in animate-delay-2">
-            Váš centrální přístupový bod pro rozvrhy, známky, docházku a komunikaci s učiteli.
-            Přihlaste se a mějte vše na jednom místě.
-        </p>
-        <div class="hero-buttons animate-in animate-delay-3">
-            @if (User.Identity?.IsAuthenticated == true)
-            {
-                <a asp-controller="Home" asp-action="Dashboard" class="btn-primary-custom" id="heroGoToDashboard">
-                    <i class="fas fa-tachometer-alt"></i> Přejít na nástěnku
-                </a>
-            }
-            else
-            {
-                <a asp-controller="Account" asp-action="Login" class="btn-primary-custom" id="heroLoginBtn">
-                    <i class="fas fa-sign-in-alt"></i> Přihlásit se
-                </a>
-                <a asp-controller="Account" asp-action="Register" class="btn-secondary-custom" id="heroRegisterBtn">
-                    <i class="fas fa-user-plus"></i> Vytvořit účet
-                </a>
-            }
+    </div>
+
+    <!-- Wave Divider -->
+    <div class="hero-wave">
+        <svg viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="waveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:#e91e90; stop-opacity:0.18" class="wave-gradient-start" />
+                    <stop offset="50%" style="stop-color:#c2185b; stop-opacity:0.08" />
+                    <stop offset="100%" style="stop-color:#00b4d8; stop-opacity:0.12" />
+                </linearGradient>
+            </defs>
+            <path d="M0,64 C360,120 720,0 1080,64 C1260,96 1380,80 1440,72 L1440,120 L0,120 Z" fill="url(#waveGrad)"/>
+            <path class="wave-bg" d="M0,80 C320,110 640,40 960,80 C1200,110 1360,90 1440,85 L1440,120 L0,120 Z" fill="#f5f5f5"/>
+        </svg>
+    </div>
+</section>
+
+<!-- Info Highlight Cards -->
+<section class="info-cards-section">
+    <div class="info-cards-grid">
+        <div class="info-highlight-card animate-in animate-delay-1">
+            <h3><i class="fas fa-school"></i> O naší škole</h3>
+            <p>
+                ZŠ Chvalkovice nabízí kvalitní vzdělávání v přátelském prostředí.
+                Zaměřujeme se na individuální přístup ke každému žákovi
+                a moderní výukové metody.
+            </p>
+        </div>
+        <div class="info-highlight-card animate-in animate-delay-2">
+            <h3><i class="fas fa-clock"></i> Provozní doba</h3>
+            <p>
+                <strong>Výuka:</strong> 7:45 – 15:00<br>
+                <strong>Školní družina:</strong> 6:30 – 16:30<br>
+                <strong>Kancelář:</strong> Po – Pá, 7:00 – 15:30
+            </p>
+        </div>
+        <div class="info-highlight-card animate-in animate-delay-3">
+            <h3><i class="fas fa-link"></i> Užitečné odkazy</h3>
+            <p>
+                <a asp-controller="Account" asp-action="Login">Přihlášení</a> &nbsp;·&nbsp;
+                <a asp-controller="Account" asp-action="Register">Registrace</a><br>
+                <a asp-controller="Home" asp-action="Cafeteria">Jídelníček</a> &nbsp;·&nbsp;
+                <a href="mailto:info&#64;zschvalk.cz">Kontakt</a>
+            </p>
         </div>
     </div>
 </section>
@@ -61,7 +110,7 @@
             <p>Sledování docházky, automatické omluvenky a notifikace pro rodiče.</p>
         </div>
         <div class="feature-card animate-in animate-delay-1">
-            <div class="feature-icon amber">
+            <div class="feature-icon rose">
                 <i class="fas fa-comments"></i>
             </div>
             <h3>Komunikace</h3>
@@ -75,7 +124,7 @@
             <p>Přístup k učebním materiálům, prezentacím a domácím úkolům online.</p>
         </div>
         <div class="feature-card animate-in animate-delay-3">
-            <div class="feature-icon rose">
+            <div class="feature-icon amber">
                 <i class="fas fa-bell"></i>
             </div>
             <h3>Upozornění</h3>

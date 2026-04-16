@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }, observerOptions);
 
-    document.querySelectorAll('.feature-card, .stat-card, .dash-card, .schedule-card').forEach(function (el) {
+    document.querySelectorAll('.feature-card, .stat-card, .dash-card, .schedule-card, .info-highlight-card').forEach(function (el) {
         el.style.opacity = '0';
         el.style.transform = 'translateY(20px)';
         el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
