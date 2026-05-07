@@ -1702,6 +1702,7 @@ a:hover {
     color: var(--text-muted);
 }
 
+<<<<<<< Updated upstream
 /* =============================================
    DARK MODE OVERRIDES
    ============================================= */
@@ -2608,10 +2609,23 @@ body.theme-transitioning * {
     border-radius: var(--radius-sm);
     font-weight: 600;
     font-size: 0.82rem;
+=======
+/* --- DARK MODE TOGGLE --- */
+.dark-mode-toggle {
+    margin-top: 0.75rem;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--bg-secondary);
+    color: var(--text-muted);
+    font-size: 0.8rem;
+>>>>>>> Stashed changes
     cursor: pointer;
     transition: var(--transition);
     display: inline-flex;
     align-items: center;
+<<<<<<< Updated upstream
     gap: 0.35rem;
     text-decoration: none;
     flex-shrink: 0;
@@ -2792,3 +2806,192 @@ body.theme-transitioning * {
 [data-theme="dark"] .file-remove:hover {
     background: rgba(198, 40, 40, 0.2);
 }
+=======
+    justify-content: center;
+    opacity: 0.4;
+}
+
+.dark-mode-toggle:hover {
+    opacity: 1;
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+/* --- DARK MODE OVERRIDES --- */
+body.dark-mode {
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-tertiary: #334155;
+    --bg-card: #1e293b;
+    --bg-input: #1e293b;
+
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+
+    --border: #334155;
+    --border-light: #1e293b;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.5);
+
+    --primary-50: rgba(37, 99, 235, 0.1);
+    --primary-100: rgba(37, 99, 235, 0.2);
+    --primary-200: rgba(37, 99, 235, 0.3);
+
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+body.dark-mode .school-nav {
+    background: #0f172a;
+    border-color: #334155;
+}
+
+body.dark-mode .hero {
+    background: #0f172a;
+    border-color: #334155;
+}
+
+body.dark-mode .feature-card,
+body.dark-mode .stat-card,
+body.dark-mode .dash-card,
+body.dark-mode .schedule-card,
+body.dark-mode .auth-card,
+body.dark-mode .quick-link-card,
+body.dark-mode .menu-day,
+body.dark-mode .cafeteria-info .info-card,
+body.dark-mode .profile-info-item {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+body.dark-mode .profile-card {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+body.dark-mode .profile-header::after {
+    background: #1e293b;
+}
+
+body.dark-mode .school-footer {
+    background: #0f172a;
+    border-color: #334155;
+}
+
+body.dark-mode .btn-nav-login {
+    background: transparent;
+    border-color: #475569;
+    color: #e2e8f0;
+}
+
+body.dark-mode .btn-logout {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #fca5a5;
+}
+
+body.dark-mode .btn-logout:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.4);
+}
+
+body.dark-mode .btn-secondary-custom {
+    background: transparent;
+    border-color: #475569;
+    color: #e2e8f0;
+}
+
+body.dark-mode .user-badge {
+    background: rgba(37, 99, 235, 0.15);
+    border-color: rgba(37, 99, 235, 0.25);
+}
+
+body.dark-mode .form-input {
+    background: #0f172a;
+    border-color: #475569;
+    color: #f1f5f9;
+}
+
+body.dark-mode .form-input:focus {
+    background: #1e293b;
+    border-color: #3b82f6;
+}
+
+body.dark-mode .validation-summary-errors {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #fca5a5;
+}
+
+body.dark-mode .alert-success {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.3);
+    color: #6ee7b7;
+}
+
+body.dark-mode .auth-domain-notice {
+    background: rgba(37, 99, 235, 0.1);
+    border-color: rgba(37, 99, 235, 0.25);
+}
+
+body.dark-mode .schedule-table th {
+    background: rgba(37, 99, 235, 0.1);
+}
+
+body.dark-mode .menu-day-header {
+    background: rgba(37, 99, 235, 0.08);
+    border-color: #334155;
+}
+
+body.dark-mode .timetable-arrow {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+body.dark-mode .tt-dot {
+    background: transparent;
+    border-color: #475569;
+    color: #94a3b8;
+}
+
+body.dark-mode .tt-dot.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+/* Dark mode feature icons */
+body.dark-mode .feature-icon.blue { background: rgba(37, 99, 235, 0.15); color: #60a5fa; }
+body.dark-mode .feature-icon.purple { background: rgba(124, 58, 237, 0.15); color: #a78bfa; }
+body.dark-mode .feature-icon.green { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+body.dark-mode .feature-icon.amber { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+body.dark-mode .feature-icon.cyan { background: rgba(6, 182, 212, 0.15); color: #22d3ee; }
+body.dark-mode .feature-icon.rose { background: rgba(244, 63, 94, 0.15); color: #fb7185; }
+
+/* Dark mode badges */
+body.dark-mode .badge-math { background: rgba(37, 99, 235, 0.2); color: #93bbfd; }
+body.dark-mode .badge-czech { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
+body.dark-mode .badge-english { background: rgba(244, 63, 94, 0.2); color: #fda4af; }
+body.dark-mode .badge-physics { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
+body.dark-mode .badge-it { background: rgba(124, 58, 237, 0.2); color: #c4b5fd; }
+body.dark-mode .badge-science { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
+body.dark-mode .badge-pe { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+body.dark-mode .badge-history { background: rgba(168, 85, 247, 0.2); color: #d8b4fe; }
+body.dark-mode .badge-music { background: rgba(236, 72, 153, 0.2); color: #f9a8d4; }
+body.dark-mode .badge-art { background: rgba(14, 165, 233, 0.2); color: #7dd3fc; }
+body.dark-mode .badge-chemistry { background: rgba(6, 182, 212, 0.2); color: #67e8f9; }
+body.dark-mode .badge-biology { background: rgba(34, 197, 94, 0.2); color: #86efac; }
+body.dark-mode .badge-geography { background: rgba(251, 146, 60, 0.2); color: #fdba74; }
+body.dark-mode .badge-civics { background: rgba(99, 102, 241, 0.2); color: #a5b4fc; }
+
+/* Dark mode nav menu mobile */
+@media (max-width: 768px) {
+    body.dark-mode .nav-menu {
+        background: #0f172a;
+        border-color: #334155;
+    }
+}
+>>>>>>> Stashed changes
