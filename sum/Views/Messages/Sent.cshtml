@@ -55,7 +55,7 @@
                 <div class="messages-list">
                     @foreach (var msg in Model)
                     {
-                        <a asp-action="Read" asp-route-id="@msg.Id" class="message-row" id="msg-sent-@msg.Id">
+                        <a asp-action="Read" asp-route-id="@msg.SecureId" class="message-row" id="msg-sent-@msg.Id">
                             <div class="msg-avatar sent-avatar">
                                 <i class="fas fa-user-circle"></i>
                             </div>

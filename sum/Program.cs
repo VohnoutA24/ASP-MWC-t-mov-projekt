@@ -59,7 +59,7 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.EnsureCreated();
 
-    // Auto-migrate AttachmentData column if it doesn't exist (ensures older databases get updated automatically)
+    // Auto-migrate database columns if they don't exist (ensures older databases get updated automatically)
     try
     {
         if (db.Database.IsSqlite())
@@ -68,25 +68,34 @@ using (var scope = app.Services.CreateScope())
             var wasOpen = conn.State == System.Data.ConnectionState.Open;
             if (!wasOpen) await conn.OpenAsync();
 
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText = "PRAGMA table_info(Messages);";
-            var hasColumn = false;
-            using (var reader = await cmd.ExecuteReaderAsync())
+            var hasAttachmentData = false;
+            var hasSecureId = false;
+
+            using (var cmd = conn.CreateCommand())
             {
-                while (await reader.ReadAsync())
+                cmd.CommandText = "PRAGMA table_info(Messages);";
+                using (var reader = await cmd.ExecuteReaderAsync())
                 {
-                    if (reader["name"]?.ToString() == "AttachmentData")
+                    while (await reader.ReadAsync())
                     {
-                        hasColumn = true;
-                        break;
+                        var columnName = reader["name"]?.ToString();
+                        if (columnName == "AttachmentData") hasAttachmentData = true;
+                        if (columnName == "SecureId") hasSecureId = true;
                     }
                 }
             }
 
-            if (!hasColumn)
+            if (!hasAttachmentData)
             {
                 using var alterCmd = conn.CreateCommand();
                 alterCmd.CommandText = "ALTER TABLE Messages ADD COLUMN AttachmentData BLOB;";
+                await alterCmd.ExecuteNonQueryAsync();
+            }
+
+            if (!hasSecureId)
+            {
+                using var alterCmd = conn.CreateCommand();
+                alterCmd.CommandText = "ALTER TABLE Messages ADD COLUMN SecureId TEXT NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000';";
                 await alterCmd.ExecuteNonQueryAsync();
             }
 
@@ -95,6 +104,18 @@ using (var scope = app.Services.CreateScope())
         else if (db.Database.IsNpgsql())
         {
             await db.Database.ExecuteSqlRawAsync("ALTER TABLE \"Messages\" ADD COLUMN IF NOT EXISTS \"AttachmentData\" bytea;");
+            await db.Database.ExecuteSqlRawAsync("ALTER TABLE \"Messages\" ADD COLUMN IF NOT EXISTS \"SecureId\" uuid NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000';");
+        }
+
+        // Backfill SecureId for any legacy database rows
+        var legacyMessages = await db.Messages.Where(m => m.SecureId == Guid.Empty).ToListAsync();
+        if (legacyMessages.Any())
+        {
+            foreach (var msg in legacyMessages)
+            {
+                msg.SecureId = Guid.NewGuid();
+            }
+            await db.SaveChangesAsync();
         }
     }
     catch (Exception ex)

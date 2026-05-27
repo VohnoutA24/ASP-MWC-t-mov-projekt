@@ -60,7 +60,7 @@
                 <div class="messages-list">
                     @foreach (var msg in Model)
                     {
-                        <a asp-action="Read" asp-route-id="@msg.Id" class="message-row @(!msg.IsRead ? "unread" : "")" id="msg-@msg.Id">
+                        <a asp-action="Read" asp-route-id="@msg.SecureId" class="message-row @(!msg.IsRead ? "unread" : "")" id="msg-@msg.Id">
                             <div class="msg-avatar">
                                 <i class="fas fa-user-circle"></i>
                             </div>

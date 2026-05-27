@@ -58,5 +58,10 @@ namespace sum.Models
         /// Raw bytes of the attachment stored directly in the database.
         /// </summary>
         public byte[]? AttachmentData { get; set; }
+
+        /// <summary>
+        /// A randomized unique secure identifier for URLs to prevent enumeration/guessing.
+        /// </summary>
+        public Guid SecureId { get; set; } = Guid.NewGuid();
     }
 }

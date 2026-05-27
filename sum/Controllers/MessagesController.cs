@@ -61,7 +61,7 @@ namespace sum.Controllers
 
         // GET: /Messages/Compose
         [HttpGet]
-        public async Task<IActionResult> Compose(int? replyTo = null)
+        public async Task<IActionResult> Compose(string? replyTo = null)
         {
             var userId = GetCurrentUserId();
             if (userId == null) return RedirectToAction("Login", "Account");
@@ -76,11 +76,15 @@ namespace sum.Controllers
             var model = new ComposeMessageViewModel();
 
             // Pre-fill if replying
-            if (replyTo.HasValue)
+            if (!string.IsNullOrEmpty(replyTo))
             {
+                Guid? replySecureId = Guid.TryParse(replyTo, out var g) ? g : null;
+                int? replyNumericId = int.TryParse(replyTo, out var n) ? n : null;
+
                 var original = await _db.Messages
                     .Include(m => m.Sender)
-                    .FirstOrDefaultAsync(m => m.Id == replyTo.Value &&
+                    .FirstOrDefaultAsync(m => 
+                        ((replySecureId != null && m.SecureId == replySecureId) || (replyNumericId != null && m.Id == replyNumericId)) &&
                         (m.RecipientId == userId.Value || m.SenderId == userId.Value));
 
                 if (original != null)
@@ -168,15 +172,19 @@ namespace sum.Controllers
 
         // GET: /Messages/Read/5
         [HttpGet]
-        public async Task<IActionResult> Read(int id)
+        public async Task<IActionResult> Read(string id)
         {
             var userId = GetCurrentUserId();
             if (userId == null) return RedirectToAction("Login", "Account");
 
+            Guid? secureId = Guid.TryParse(id, out var g) ? g : null;
+            int? numericId = int.TryParse(id, out var n) ? n : null;
+
             var message = await _db.Messages
                 .Include(m => m.Sender)
                 .Include(m => m.Recipient)
-                .FirstOrDefaultAsync(m => m.Id == id &&
+                .FirstOrDefaultAsync(m => 
+                    ((secureId != null && m.SecureId == secureId) || (numericId != null && m.Id == numericId)) &&
                     (m.RecipientId == userId.Value || m.SenderId == userId.Value));
 
             if (message == null) return NotFound();
@@ -193,13 +201,17 @@ namespace sum.Controllers
 
         // GET: /Messages/Download/5
         [HttpGet]
-        public async Task<IActionResult> Download(int id, bool inline = false)
+        public async Task<IActionResult> Download(string id, bool inline = false)
         {
             var userId = GetCurrentUserId();
             if (userId == null) return RedirectToAction("Login", "Account");
 
+            Guid? secureId = Guid.TryParse(id, out var g) ? g : null;
+            int? numericId = int.TryParse(id, out var n) ? n : null;
+
             var message = await _db.Messages
-                .FirstOrDefaultAsync(m => m.Id == id &&
+                .FirstOrDefaultAsync(m => 
+                    ((secureId != null && m.SecureId == secureId) || (numericId != null && m.Id == numericId)) &&
                     (m.RecipientId == userId.Value || m.SenderId == userId.Value));
 
             if (message == null)
