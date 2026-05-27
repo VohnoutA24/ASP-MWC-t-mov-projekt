@@ -86,6 +86,13 @@
                             <i class="fas fa-download"></i> Stáhnout
                         </a>
                     </div>
+
+                    @if (Model.AttachmentContentType != null && Model.AttachmentContentType.StartsWith("image/"))
+                    {
+                        <div class="attachment-image-preview mt-3 text-center" style="margin-top: 1.25rem; border-top: 1px dashed var(--border); padding-top: 1.25rem;">
+                            <img src="@Url.Action("Download", "Messages", new { id = Model.Id, inline = true })" alt="@Model.AttachmentFileName" class="img-fluid rounded" style="max-height: 450px; max-width: 100%; border: 1px solid var(--border); box-shadow: var(--shadow-sm); object-fit: contain;" />
+                        </div>
+                    }
                 </div>
             }
 

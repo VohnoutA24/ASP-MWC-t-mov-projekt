@@ -186,7 +186,7 @@ namespace sum.Controllers
 
         // GET: /Messages/Download/5
         [HttpGet]
-        public async Task<IActionResult> Download(int id)
+        public async Task<IActionResult> Download(int id, bool inline = false)
         {
             var userId = GetCurrentUserId();
             if (userId == null) return RedirectToAction("Login", "Account");
@@ -204,6 +204,11 @@ namespace sum.Controllers
 
             var contentType = message.AttachmentContentType ?? "application/octet-stream";
             var fileName = message.AttachmentFileName ?? "attachment";
+
+            if (inline)
+            {
+                return PhysicalFile(filePath, contentType);
+            }
 
             return PhysicalFile(filePath, contentType, fileName);
         }
