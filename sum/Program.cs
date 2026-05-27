@@ -20,10 +20,25 @@ builder.WebHost.ConfigureKestrel(options =>
 var port = Environment.GetEnvironmentVariable("PORT") ?? "5089";
 builder.WebHost.UseUrls($"http://*:{port}");
 
-// Configure SQLite database
+// Configure database (SQLite local, PostgreSQL in cloud/Render)
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")
-        ?? "Data Source=school.db"));
+{
+    if (!string.IsNullOrEmpty(databaseUrl))
+    {
+        options.UseNpgsql(ParseDatabaseUrl(databaseUrl));
+    }
+    else if (!string.IsNullOrEmpty(connectionString) && (connectionString.Contains("Host=") || connectionString.Contains("Server=")))
+    {
+        options.UseNpgsql(connectionString);
+    }
+    else
+    {
+        options.UseSqlite(connectionString ?? "Data Source=school.db");
+    }
+});
 
 // Configure cookie authentication
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -64,3 +79,17 @@ app.MapControllerRoute(
 
 
 app.Run();
+
+// Helper method to parse postgres:// connection string from Render
+string ParseDatabaseUrl(string databaseUrl)
+{
+    var uri = new Uri(databaseUrl);
+    var userInfo = uri.UserInfo.Split(':');
+    var username = userInfo[0];
+    var password = userInfo.Length > 1 ? userInfo[1] : "";
+    var host = uri.Host;
+    var port = uri.Port > 0 ? uri.Port : 5432;
+    var database = uri.AbsolutePath.TrimStart('/');
+
+    return $"Host={host};Port={port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true;";
+}
