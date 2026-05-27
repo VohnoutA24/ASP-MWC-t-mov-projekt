@@ -48,9 +48,10 @@ namespace sum.Controllers
             return View();
         }
 
-        public IActionResult Timetable()
+        public IActionResult Timetable(int grade = 8)
         {
-            return View();
+            var model = sum.Services.TimetableGenerator.GenerateForGrade(grade);
+            return View(model);
         }
 
         public IActionResult Cafeteria()
