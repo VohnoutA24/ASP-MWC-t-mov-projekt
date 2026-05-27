@@ -15,8 +15,5 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
 
-# Render exposes a PORT environment variable, we will bind ASP.NET to it
-ENV ASPNETCORE_URLS=http://+:80
-EXPOSE 80
 
 ENTRYPOINT ["dotnet", "sum.dll"]

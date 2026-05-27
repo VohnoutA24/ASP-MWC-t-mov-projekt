@@ -17,6 +17,9 @@ builder.WebHost.ConfigureKestrel(options =>
     options.Limits.MaxRequestBodySize = 30 * 1024 * 1024; // 30 MB
 });
 
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5089";
+builder.WebHost.UseUrls($"http://*:{port}");
+
 // Configure SQLite database
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")
