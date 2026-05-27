@@ -146,6 +146,13 @@ namespace sum.Controllers
                     await model.Attachment.CopyToAsync(stream);
                 }
 
+                // Read attachment bytes to persist directly in database (protects against ephemeral disk clears)
+                using (var memoryStream = new MemoryStream())
+                {
+                    await model.Attachment.CopyToAsync(memoryStream);
+                    message.AttachmentData = memoryStream.ToArray();
+                }
+
                 message.AttachmentFileName = model.Attachment.FileName;
                 message.AttachmentStoredName = storedName;
                 message.AttachmentContentType = model.Attachment.ContentType;
@@ -195,22 +202,38 @@ namespace sum.Controllers
                 .FirstOrDefaultAsync(m => m.Id == id &&
                     (m.RecipientId == userId.Value || m.SenderId == userId.Value));
 
-            if (message == null || message.AttachmentStoredName == null)
+            if (message == null)
                 return NotFound();
 
-            var filePath = Path.Combine(_env.ContentRootPath, "Uploads", "Messages", message.AttachmentStoredName);
-            if (!System.IO.File.Exists(filePath))
-                return NotFound();
-
+            byte[] fileBytes;
             var contentType = message.AttachmentContentType ?? "application/octet-stream";
             var fileName = message.AttachmentFileName ?? "attachment";
 
-            if (inline)
+            // Prefer database stored attachment bytes (safe from ephemeral disk cleanups)
+            if (message.AttachmentData != null)
             {
-                return PhysicalFile(filePath, contentType);
+                fileBytes = message.AttachmentData;
+            }
+            else if (message.AttachmentStoredName != null)
+            {
+                // Fallback to disk storage for older messages or local cache
+                var filePath = Path.Combine(_env.ContentRootPath, "Uploads", "Messages", message.AttachmentStoredName);
+                if (!System.IO.File.Exists(filePath))
+                    return NotFound();
+
+                fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+            }
+            else
+            {
+                return NotFound();
             }
 
-            return PhysicalFile(filePath, contentType, fileName);
+            if (inline)
+            {
+                return File(fileBytes, contentType);
+            }
+
+            return File(fileBytes, contentType, fileName);
         }
 
         // GET: /Messages/UnreadCount (AJAX endpoint for navbar badge)

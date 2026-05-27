@@ -58,6 +58,49 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.EnsureCreated();
+
+    // Auto-migrate AttachmentData column if it doesn't exist (ensures older databases get updated automatically)
+    try
+    {
+        if (db.Database.IsSqlite())
+        {
+            var conn = db.Database.GetDbConnection();
+            var wasOpen = conn.State == System.Data.ConnectionState.Open;
+            if (!wasOpen) await conn.OpenAsync();
+
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "PRAGMA table_info(Messages);";
+            var hasColumn = false;
+            using (var reader = await cmd.ExecuteReaderAsync())
+            {
+                while (await reader.ReadAsync())
+                {
+                    if (reader["name"]?.ToString() == "AttachmentData")
+                    {
+                        hasColumn = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!hasColumn)
+            {
+                using var alterCmd = conn.CreateCommand();
+                alterCmd.CommandText = "ALTER TABLE Messages ADD COLUMN AttachmentData BLOB;";
+                await alterCmd.ExecuteNonQueryAsync();
+            }
+
+            if (!wasOpen) await conn.CloseAsync();
+        }
+        else if (db.Database.IsNpgsql())
+        {
+            await db.Database.ExecuteSqlRawAsync("ALTER TABLE \"Messages\" ADD COLUMN IF NOT EXISTS \"AttachmentData\" bytea;");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error running database migrations on startup: {ex.Message}");
+    }
 }
 
 // Configure the HTTP request pipeline.

@@ -53,5 +53,10 @@ namespace sum.Models
         /// Size of the attachment in bytes.
         /// </summary>
         public long? AttachmentSize { get; set; }
+
+        /// <summary>
+        /// Raw bytes of the attachment stored directly in the database.
+        /// </summary>
+        public byte[]? AttachmentData { get; set; }
     }
 }
