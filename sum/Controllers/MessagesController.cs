@@ -248,6 +248,41 @@ namespace sum.Controllers
             return File(fileBytes, contentType, fileName);
         }
 
+        // GET: /Messages/PublicAttachment/c7b2a654-da5c-4f9e-bc43-98282110c71a/image.png
+        [HttpGet]
+        [Route("Messages/PublicAttachment/{secureId}/{fileName?}")]
+        public async Task<IActionResult> PublicAttachment(Guid secureId, string? fileName)
+        {
+            var message = await _db.Messages
+                .FirstOrDefaultAsync(m => m.SecureId == secureId);
+
+            if (message == null)
+                return NotFound();
+
+            byte[] fileBytes;
+            var contentType = message.AttachmentContentType ?? "application/octet-stream";
+
+            if (message.AttachmentData != null)
+            {
+                fileBytes = message.AttachmentData;
+            }
+            else if (message.AttachmentStoredName != null)
+            {
+                var filePath = Path.Combine(_env.ContentRootPath, "Uploads", "Messages", message.AttachmentStoredName);
+                if (!System.IO.File.Exists(filePath))
+                    return NotFound();
+
+                fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+            }
+            else
+            {
+                return NotFound();
+            }
+
+            // Always serve inline for embedding/hotlinking
+            return File(fileBytes, contentType);
+        }
+
         // GET: /Messages/UnreadCount (AJAX endpoint for navbar badge)
         [HttpGet]
         public async Task<IActionResult> UnreadCount()

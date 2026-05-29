@@ -90,7 +90,13 @@
                     @if (Model.AttachmentContentType != null && Model.AttachmentContentType.StartsWith("image/"))
                     {
                         <div class="attachment-image-preview mt-3 text-center" style="margin-top: 1.25rem; border-top: 1px dashed var(--border); padding-top: 1.25rem;">
-                            <img src="@Url.Action("Download", "Messages", new { id = Model.SecureId, inline = true })" alt="@Model.AttachmentFileName" class="img-fluid rounded" style="max-height: 450px; max-width: 100%; border: 1px solid var(--border); box-shadow: var(--shadow-sm); object-fit: contain;" />
+                            <img src="@Url.Action("PublicAttachment", "Messages", new { secureId = Model.SecureId, fileName = Model.AttachmentFileName })" alt="@Model.AttachmentFileName" class="img-fluid rounded" style="max-height: 450px; max-width: 100%; border: 1px solid var(--border); box-shadow: var(--shadow-sm); object-fit: contain;" />
+                        </div>
+                    }
+                    else if (Model.AttachmentContentType != null && Model.AttachmentContentType.StartsWith("video/"))
+                    {
+                        <div class="attachment-video-preview mt-3 text-center" style="margin-top: 1.25rem; border-top: 1px dashed var(--border); padding-top: 1.25rem;">
+                            <video src="@Url.Action("PublicAttachment", "Messages", new { secureId = Model.SecureId, fileName = Model.AttachmentFileName })" controls class="img-fluid rounded" style="max-height: 450px; max-width: 100%; border: 1px solid var(--border); box-shadow: var(--shadow-sm);" />
                         </div>
                     }
                 </div>
