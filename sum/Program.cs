@@ -4,6 +4,9 @@ using sum.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Initialize EncryptionHelper
+sum.Services.EncryptionHelper.Initialize(builder.Configuration["Encryption:Key"]);
+
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 

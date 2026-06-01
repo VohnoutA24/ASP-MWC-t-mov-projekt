@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using sum.Data;
 using sum.Models;
+using sum.Services;
 using System.Security.Claims;
 
 namespace sum.Controllers
@@ -37,6 +38,12 @@ namespace sum.Controllers
                 .OrderByDescending(m => m.SentAt)
                 .ToListAsync();
 
+            foreach (var m in messages)
+            {
+                m.Subject = EncryptionHelper.Decrypt(m.Subject);
+                m.Body = EncryptionHelper.Decrypt(m.Body);
+            }
+
             ViewBag.ActiveTab = "inbox";
             ViewBag.UnreadCount = messages.Count(m => !m.IsRead);
             return View(messages);
@@ -54,6 +61,12 @@ namespace sum.Controllers
                 .Where(m => m.SenderId == userId.Value)
                 .OrderByDescending(m => m.SentAt)
                 .ToListAsync();
+
+            foreach (var m in messages)
+            {
+                m.Subject = EncryptionHelper.Decrypt(m.Subject);
+                m.Body = EncryptionHelper.Decrypt(m.Body);
+            }
 
             ViewBag.ActiveTab = "sent";
             return View(messages);
@@ -89,13 +102,16 @@ namespace sum.Controllers
 
                 if (original != null)
                 {
+                    var decryptedSubject = EncryptionHelper.Decrypt(original.Subject);
+                    var decryptedBody = EncryptionHelper.Decrypt(original.Body);
+
                     model.RecipientId = original.SenderId == userId.Value
                         ? original.RecipientId
                         : original.SenderId;
-                    model.Subject = original.Subject.StartsWith("Re: ")
-                        ? original.Subject
-                        : $"Re: {original.Subject}";
-                    model.Body = $"\n\n--- Původní zpráva ---\nOd: {original.Sender?.Email}\nDne: {original.SentAt:dd.MM.yyyy HH:mm}\n\n{original.Body}";
+                    model.Subject = decryptedSubject.StartsWith("Re: ")
+                        ? decryptedSubject
+                        : $"Re: {decryptedSubject}";
+                    model.Body = $"\n\n--- Původní zpráva ---\nOd: {original.Sender?.Email}\nDne: {original.SentAt:dd.MM.yyyy HH:mm}\n\n{decryptedBody}";
                 }
             }
 
@@ -130,8 +146,8 @@ namespace sum.Controllers
             {
                 SenderId = userId.Value,
                 RecipientId = model.RecipientId,
-                Subject = model.Subject,
-                Body = model.Body,
+                Subject = EncryptionHelper.Encrypt(model.Subject),
+                Body = EncryptionHelper.Encrypt(model.Body),
                 SentAt = DateTime.UtcNow,
                 IsRead = false
             };
@@ -188,6 +204,9 @@ namespace sum.Controllers
                     (m.RecipientId == userId.Value || m.SenderId == userId.Value));
 
             if (message == null) return NotFound();
+
+            message.Subject = EncryptionHelper.Decrypt(message.Subject);
+            message.Body = EncryptionHelper.Decrypt(message.Body);
 
             // Mark as read if recipient is viewing
             if (message.RecipientId == userId.Value && !message.IsRead)
