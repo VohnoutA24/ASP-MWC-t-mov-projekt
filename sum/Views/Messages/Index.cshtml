@@ -47,6 +47,18 @@
                 </div>
             }
 
+            @if (activeTab == "trash" && Model.Count > 0)
+            {
+                <div class="trash-toolbar animate-in" style="display: flex; justify-content: flex-end; margin-bottom: 1rem;">
+                    <form asp-action="EmptyTrash" method="post" onsubmit="return confirm('Opravdu chcete vysypat celý koš? Tato akce je nevratná.');">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn-logout" style="padding: 0.5rem 1.2rem; font-size: 0.88rem; gap: 0.5rem; display: flex; align-items: center; border-radius: var(--radius-sm);">
+                            <i class="fas fa-trash-alt"></i> Vysypat koš
+                        </button>
+                    </form>
+                </div>
+            }
+
             @if (Model.Count == 0)
             {
                 <div class="messages-empty">
@@ -71,40 +83,71 @@
                         var isSentByMe = msg.SenderId == currentUserId;
                         var isUnreadIncoming = !msg.IsRead && !isSentByMe;
 
-                        <a asp-action="Read" asp-route-id="@msg.SecureId" class="message-row @(isUnreadIncoming ? "unread" : "")" id="msg-@msg.Id">
-                            <div class="msg-avatar @(isSentByMe ? "sent-avatar" : "")">
-                                <i class="fas fa-user-circle"></i>
-                            </div>
-                            <div class="msg-info">
-                                <div class="msg-top">
-                                    <span class="msg-sender">
-                                        @if (isSentByMe)
+                        <div class="message-row @(isUnreadIncoming ? "unread" : "")" id="msg-@msg.Id">
+                            <a asp-action="Read" asp-route-id="@msg.SecureId" class="msg-row-link">
+                                <div class="msg-avatar @(isSentByMe ? "sent-avatar" : "")">
+                                    <i class="fas fa-user-circle"></i>
+                                </div>
+                                <div class="msg-info">
+                                    <div class="msg-top">
+                                        <span class="msg-sender">
+                                            @if (isSentByMe)
+                                            {
+                                                @:Komu: @(msg.Recipient?.FullName ?? msg.Recipient?.Email ?? "Neznámý")
+                                            }
+                                            else
+                                            {
+                                                @(msg.Sender?.FullName ?? msg.Sender?.Email ?? "Neznámý")
+                                            }
+                                        </span>
+                                        <span class="msg-date">@msg.SentAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</span>
+                                    </div>
+                                    <div class="msg-subject">
+                                        @if (isUnreadIncoming)
                                         {
-                                            @:Komu: @(msg.Recipient?.FullName ?? msg.Recipient?.Email ?? "Neznámý")
+                                            <span class="unread-dot"></span>
                                         }
-                                        else
+                                        @msg.Subject
+                                    </div>
+                                    <div class="msg-preview">
+                                        @if (msg.AttachmentFileName != null)
                                         {
-                                            @(msg.Sender?.FullName ?? msg.Sender?.Email ?? "Neznámý")
+                                            <i class="fas fa-paperclip msg-attachment-icon"></i>
                                         }
-                                    </span>
-                                    <span class="msg-date">@msg.SentAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</span>
+                                        @(string.IsNullOrEmpty(msg.Body) ? "Žádný obsah" : (msg.Body.Length > 100 ? msg.Body.Substring(0, 100) + "…" : msg.Body))
+                                    </div>
                                 </div>
-                                <div class="msg-subject">
-                                    @if (isUnreadIncoming)
-                                    {
-                                        <span class="unread-dot"></span>
-                                    }
-                                    @msg.Subject
-                                </div>
-                                <div class="msg-preview">
-                                    @if (msg.AttachmentFileName != null)
-                                    {
-                                        <i class="fas fa-paperclip msg-attachment-icon"></i>
-                                    }
-                                    @(string.IsNullOrEmpty(msg.Body) ? "Žádný obsah" : (msg.Body.Length > 100 ? msg.Body.Substring(0, 100) + "…" : msg.Body))
-                                </div>
+                            </a>
+                            <div class="msg-actions" onclick="event.stopPropagation();">
+                                @if (activeTab == "trash")
+                                {
+                                    <form asp-action="Restore" method="post" style="display: inline-block;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@msg.SecureId" />
+                                        <button type="submit" class="btn-msg-action restore" title="Obnovit z koše">
+                                            <i class="fas fa-undo"></i>
+                                        </button>
+                                    </form>
+                                    <form asp-action="DeletePermanently" method="post" style="display: inline-block;" onsubmit="return confirm('Opravdu chcete tuto zprávu trvale smazat?');">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@msg.SecureId" />
+                                        <button type="submit" class="btn-msg-action delete" title="Smazat trvale">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <form asp-action="Delete" method="post" style="display: inline-block;" onsubmit="return confirm('Opravdu chcete tuto zprávu přesunout do koše?');">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@msg.SecureId" />
+                                        <button type="submit" class="btn-msg-action delete" title="Přesunout do koše">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
+                                }
                             </div>
-                        </a>
+                        </div>
                     }
                 </div>
             }

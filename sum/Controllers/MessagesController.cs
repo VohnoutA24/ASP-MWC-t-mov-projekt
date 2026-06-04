@@ -486,5 +486,55 @@ namespace sum.Controllers
 
             return RedirectToAction("Trash");
         }
+
+        // POST: /Messages/EmptyTrash
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EmptyTrash()
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null) return RedirectToAction("Login", "Account");
+
+            var fifteenDaysAgo = DateTime.UtcNow.AddDays(-15);
+            var messages = await _db.Messages
+                .Where(m => 
+                    (m.RecipientId == userId.Value && m.RecipientDeleted && m.RecipientDeletedAt > fifteenDaysAgo) ||
+                    (m.SenderId == userId.Value && m.SenderDeleted && m.SenderDeletedAt > fifteenDaysAgo))
+                .ToListAsync();
+
+            foreach (var message in messages)
+            {
+                bool deleteFromDb = false;
+
+                if (message.RecipientId == userId.Value)
+                {
+                    message.RecipientDeleted = true;
+                    message.RecipientDeletedAt = DateTime.UtcNow.AddDays(-30);
+                    if (message.SenderDeleted)
+                    {
+                        deleteFromDb = true;
+                    }
+                }
+                if (message.SenderId == userId.Value)
+                {
+                    message.SenderDeleted = true;
+                    message.SenderDeletedAt = DateTime.UtcNow.AddDays(-30);
+                    if (message.RecipientDeleted)
+                    {
+                        deleteFromDb = true;
+                    }
+                }
+
+                if (deleteFromDb)
+                {
+                    _db.Messages.Remove(message);
+                }
+            }
+
+            await _db.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Koš byl úspěšně vysypán.";
+
+            return RedirectToAction("Trash");
+        }
     }
 }
