@@ -62,6 +62,20 @@
             else
             {
                 <div class="messages-list">
+                    <!-- Selection Toolbar -->
+                    <div class="messages-toolbar animate-in">
+                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            <input type="checkbox" id="selectAllCheckbox" style="transform: scale(1.15); cursor: pointer;" />
+                            <label for="selectAllCheckbox" style="font-size: 0.88rem; cursor: pointer; color: var(--text-secondary); user-select: none; font-weight: 600;">Vybrat vše</label>
+                            <span id="selectedCountText" style="font-size: 0.88rem; font-weight: 600; color: var(--primary); display: none; margin-left: 0.5rem;">(vybráno: 0)</span>
+                        </div>
+                        <div class="bulk-buttons" id="bulkButtons" style="display: flex; gap: 0.5rem; visibility: hidden; opacity: 0; transition: all 0.2s ease;">
+                            <button type="button" id="bulkDeleteBtn" class="btn-bulk-action delete" title="Přesunout vybrané do koše">
+                                <i class="fas fa-trash-alt"></i> Smazat vybrané
+                            </button>
+                        </div>
+                    </div>
+
                     @foreach (var msg in Model)
                     {
                         <div class="message-row" id="msg-sent-@msg.Id">
@@ -74,8 +88,9 @@
                                         <span class="msg-sender">Komu: @(msg.Recipient?.FullName ?? msg.Recipient?.Email ?? "Neznámý")</span>
                                         <span class="msg-date">@msg.SentAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</span>
                                     </div>
-                                    <div class="msg-subject">
-                                        @msg.Subject
+                                    <div class="msg-subject" style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <input type="checkbox" class="msg-select-checkbox" data-id="@msg.SecureId" onclick="event.stopPropagation();" style="cursor: pointer; transform: scale(1.1); margin-right: 0.25rem;" />
+                                        <span class="subject-text">@msg.Subject</span>
                                         @if (msg.IsRead)
                                         {
                                             <span class="read-indicator" title="Přečteno"><i class="fas fa-check-double"></i></span>
@@ -106,3 +121,83 @@
         </div>
     </div>
 </div>
+
+<form id="bulkActionForm" method="post" style="display: none;">
+    @Html.AntiForgeryToken()
+    <div id="bulkFormInputs"></div>
+</form>
+
+@section Scripts {
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const selectAllCheckbox = document.getElementById("selectAllCheckbox");
+        const msgCheckboxes = document.querySelectorAll(".msg-select-checkbox");
+        const selectedCountText = document.getElementById("selectedCountText");
+        const bulkButtons = document.getElementById("bulkButtons");
+        
+        const bulkDeleteBtn = document.getElementById("bulkDeleteBtn");
+        
+        const bulkActionForm = document.getElementById("bulkActionForm");
+        const bulkFormInputs = document.getElementById("bulkFormInputs");
+
+        function updateSelectionState() {
+            const checkedCount = document.querySelectorAll(".msg-select-checkbox:checked").length;
+            
+            if (checkedCount > 0) {
+                selectedCountText.textContent = `(vybráno: ${checkedCount})`;
+                selectedCountText.style.display = "inline";
+                bulkButtons.style.visibility = "visible";
+                bulkButtons.style.opacity = "1";
+            } else {
+                selectedCountText.style.display = "none";
+                bulkButtons.style.visibility = "hidden";
+                bulkButtons.style.opacity = "0";
+            }
+
+            if (msgCheckboxes.length > 0) {
+                selectAllCheckbox.checked = (checkedCount === msgCheckboxes.length);
+            }
+        }
+
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener("change", function () {
+                msgCheckboxes.forEach(cb => {
+                    cb.checked = selectAllCheckbox.checked;
+                });
+                updateSelectionState();
+            });
+        }
+
+        msgCheckboxes.forEach(cb => {
+            cb.addEventListener("change", function () {
+                updateSelectionState();
+            });
+        });
+
+        function submitBulkAction(actionUrl, confirmMessage) {
+            const checkedBoxes = document.querySelectorAll(".msg-select-checkbox:checked");
+            if (checkedBoxes.length === 0) return;
+
+            if (confirmMessage && !confirm(confirmMessage)) return;
+
+            bulkFormInputs.innerHTML = "";
+            checkedBoxes.forEach(cb => {
+                const input = document.createElement("input");
+                input.type = "hidden";
+                input.name = "ids";
+                input.value = cb.getAttribute("data-id");
+                bulkFormInputs.appendChild(input);
+            });
+
+            bulkActionForm.action = actionUrl;
+            bulkActionForm.submit();
+        }
+
+        if (bulkDeleteBtn) {
+            bulkDeleteBtn.addEventListener("click", function () {
+                submitBulkAction('@Url.Action("BulkDelete", "Messages")', "Opravdu chcete přesunout všechny vybrané zprávy do koše?");
+            });
+        }
+    });
+</script>
+}

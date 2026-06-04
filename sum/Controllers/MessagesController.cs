@@ -536,5 +536,141 @@ namespace sum.Controllers
 
             return RedirectToAction("Trash");
         }
+
+        // POST: /Messages/BulkDelete
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BulkDelete(List<string> ids)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null) return RedirectToAction("Login", "Account");
+            if (ids == null || !ids.Any()) return RedirectToAction("Index");
+
+            foreach (var id in ids)
+            {
+                Guid? secureId = Guid.TryParse(id, out var g) ? g : null;
+                int? numericId = int.TryParse(id, out var n) ? n : null;
+
+                var message = await _db.Messages
+                    .FirstOrDefaultAsync(m => 
+                        ((secureId != null && m.SecureId == secureId) || (numericId != null && m.Id == numericId)) &&
+                        (m.RecipientId == userId.Value || m.SenderId == userId.Value));
+
+                if (message != null)
+                {
+                    if (message.RecipientId == userId.Value)
+                    {
+                        message.RecipientDeleted = true;
+                        message.RecipientDeletedAt = DateTime.UtcNow;
+                    }
+                    if (message.SenderId == userId.Value)
+                    {
+                        message.SenderDeleted = true;
+                        message.SenderDeletedAt = DateTime.UtcNow;
+                    }
+                }
+            }
+
+            await _db.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Vybrané zprávy byly přesunuty do koše.";
+
+            var referer = Request.Headers["Referer"].ToString();
+            if (referer.Contains("/Sent", StringComparison.OrdinalIgnoreCase))
+                return RedirectToAction("Sent");
+            return RedirectToAction("Index");
+        }
+
+        // POST: /Messages/BulkRestore
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BulkRestore(List<string> ids)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null) return RedirectToAction("Login", "Account");
+            if (ids == null || !ids.Any()) return RedirectToAction("Trash");
+
+            foreach (var id in ids)
+            {
+                Guid? secureId = Guid.TryParse(id, out var g) ? g : null;
+                int? numericId = int.TryParse(id, out var n) ? n : null;
+
+                var message = await _db.Messages
+                    .FirstOrDefaultAsync(m => 
+                        ((secureId != null && m.SecureId == secureId) || (numericId != null && m.Id == numericId)) &&
+                        (m.RecipientId == userId.Value || m.SenderId == userId.Value));
+
+                if (message != null)
+                {
+                    if (message.RecipientId == userId.Value)
+                    {
+                        message.RecipientDeleted = false;
+                        message.RecipientDeletedAt = null;
+                    }
+                    if (message.SenderId == userId.Value)
+                    {
+                        message.SenderDeleted = false;
+                        message.SenderDeletedAt = null;
+                    }
+                }
+            }
+
+            await _db.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Vybrané zprávy byly obnoveny z koše.";
+            return RedirectToAction("Trash");
+        }
+
+        // POST: /Messages/BulkDeletePermanently
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BulkDeletePermanently(List<string> ids)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null) return RedirectToAction("Login", "Account");
+            if (ids == null || !ids.Any()) return RedirectToAction("Trash");
+
+            foreach (var id in ids)
+            {
+                Guid? secureId = Guid.TryParse(id, out var g) ? g : null;
+                int? numericId = int.TryParse(id, out var n) ? n : null;
+
+                var message = await _db.Messages
+                    .FirstOrDefaultAsync(m => 
+                        ((secureId != null && m.SecureId == secureId) || (numericId != null && m.Id == numericId)) &&
+                        (m.RecipientId == userId.Value || m.SenderId == userId.Value));
+
+                if (message != null)
+                {
+                    bool deleteFromDb = false;
+
+                    if (message.RecipientId == userId.Value)
+                    {
+                        message.RecipientDeleted = true;
+                        message.RecipientDeletedAt = DateTime.UtcNow.AddDays(-30);
+                        if (message.SenderDeleted)
+                        {
+                            deleteFromDb = true;
+                        }
+                    }
+                    if (message.SenderId == userId.Value)
+                    {
+                        message.SenderDeleted = true;
+                        message.SenderDeletedAt = DateTime.UtcNow.AddDays(-30);
+                        if (message.RecipientDeleted)
+                        {
+                            deleteFromDb = true;
+                        }
+                    }
+
+                    if (deleteFromDb)
+                    {
+                        _db.Messages.Remove(message);
+                    }
+                }
+            }
+
+            await _db.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Vybrané zprávy byly trvale smazány.";
+            return RedirectToAction("Trash");
+        }
     }
 }
