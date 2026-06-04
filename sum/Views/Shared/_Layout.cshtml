@@ -1,6 +1,22 @@
 @inject sum.Data.AppDbContext DbContext
+@inject Microsoft.AspNetCore.DataProtection.IDataProtectionProvider DataProtectionProvider
 @using System.Security.Claims
+@using Microsoft.AspNetCore.DataProtection
 @{
+    var protector = DataProtectionProvider.CreateProtector("sum.AccountController.ActiveAccounts");
+    var activeAccounts = new List<sum.Controllers.AccountController.ActiveAccountDto>();
+    var activeAccountsCookie = Context.Request.Cookies["ActiveAccounts"];
+    if (!string.IsNullOrEmpty(activeAccountsCookie))
+    {
+        try
+        {
+            var decrypted = protector.Unprotect(activeAccountsCookie);
+            activeAccounts = System.Text.Json.JsonSerializer.Deserialize<List<sum.Controllers.AccountController.ActiveAccountDto>>(decrypted) 
+                ?? new List<sum.Controllers.AccountController.ActiveAccountDto>();
+        }
+        catch { }
+    }
+
     int unreadMessagesCount = 0;
     int pendingHomeworkCount = 0;
     if (User.Identity?.IsAuthenticated == true)
@@ -105,18 +121,66 @@
                     <div class="nav-auth">
                         @if (User.Identity?.IsAuthenticated == true)
                         {
-                            <div class="user-badge">
-                                <div class="user-avatar">
-                                    <i class="fas fa-user-circle"></i>
-                                </div>
-                                <span class="user-name">@User.Identity.Name</span>
-                            </div>
-                            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="btn-logout" id="logoutBtn">
-                                    <i class="fas fa-sign-out-alt"></i> Odhlásit
+                            var currentUserIdClaim = User.FindFirst("UserId")?.Value;
+                            int.TryParse(currentUserIdClaim, out var currentUserId);
+                            var currentFullName = User.FindFirst("FullName")?.Value ?? User.Identity.Name;
+
+                            <div class="account-switcher-dropdown">
+                                <button type="button" class="user-badge" id="accountSwitcherBtn" onclick="toggleAccountDropdown(event)">
+                                    <div class="user-avatar" style="width: 24px; height: 24px; border-radius: 50%; background: var(--primary-50); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">
+                                        <i class="fas fa-user-circle"></i>
+                                    </div>
+                                    <span class="user-name">@currentFullName</span>
+                                    <i class="fas fa-chevron-down" style="font-size: 0.75rem; margin-left: 0.25rem; color: var(--text-secondary);"></i>
                                 </button>
-                            </form>
+                                <div class="account-dropdown-menu" id="accountDropdownMenu">
+                                    <div class="dropdown-header">Aktivní účty</div>
+                                    
+                                    <!-- Current active account indicator -->
+                                    <div class="dropdown-item account-item" style="background-color: var(--primary-50); border-left: 3px solid var(--primary); cursor: default; border-bottom: 1px solid var(--border-light);">
+                                        <div class="account-avatar @(User.FindFirst(ClaimTypes.Role)?.Value == "Teacher" ? "teacher" : "")">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        <div class="account-details">
+                                            <span class="account-name" style="font-weight:600;">@currentFullName <small style="color: var(--primary); font-weight: bold;">(aktivní)</small></span>
+                                            <span class="account-email" style="font-size: 0.75rem; color: var(--text-secondary);">@User.Identity.Name</span>
+                                        </div>
+                                    </div>
+
+                                    @foreach (var acc in activeAccounts.Where(a => a.UserId != currentUserId))
+                                    {
+                                        <form asp-controller="Account" asp-action="SwitchAccount" method="post" style="margin: 0; padding: 0; width: 100%;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="userId" value="@acc.UserId" />
+                                            <button type="submit" class="dropdown-item account-item" style="width: 100%;">
+                                                <div class="account-avatar @(acc.Role == "Teacher" ? "teacher" : "")">
+                                                    <i class="fas fa-user"></i>
+                                                </div>
+                                                <div class="account-details">
+                                                    <span class="account-name" style="font-weight:600;">@acc.FullName</span>
+                                                    <span class="account-email" style="font-size: 0.75rem; color: var(--text-secondary);">@acc.Email</span>
+                                                </div>
+                                            </button>
+                                        </form>
+                                    }
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item action-item" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Context.Request.Path">
+                                        <i class="fas fa-user-plus"></i> Přihlásit jiný účet
+                                    </a>
+                                    <form asp-controller="Account" asp-action="Logout" method="post" style="width: 100%;">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="dropdown-item action-item danger">
+                                            <i class="fas fa-sign-out-alt"></i> Odhlásit tento účet
+                                        </button>
+                                    </form>
+                                    <form asp-controller="Account" asp-action="LogoutAll" method="post" style="width: 100%;">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="dropdown-item action-item danger">
+                                            <i class="fas fa-users-slash"></i> Odhlásit všechny účty
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
                         }
                         else
                         {
@@ -174,6 +238,24 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        function toggleAccountDropdown(event) {
+            event.stopPropagation();
+            const menu = document.getElementById("accountDropdownMenu");
+            menu.classList.toggle("show");
+        }
+
+        document.addEventListener("click", function (event) {
+            const menu = document.getElementById("accountDropdownMenu");
+            const btn = document.getElementById("accountSwitcherBtn");
+            if (menu && menu.classList.contains("show")) {
+                const isClickInside = menu.contains(event.target) || (btn && btn.contains(event.target));
+                if (!isClickInside) {
+                    menu.classList.remove("show");
+                }
+            }
+        });
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
