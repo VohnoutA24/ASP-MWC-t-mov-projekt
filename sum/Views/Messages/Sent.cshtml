@@ -25,6 +25,10 @@
                     <i class="fas fa-paper-plane"></i>
                     <span>Odeslaná</span>
                 </a>
+                <a asp-action="Trash" class="msg-nav-item @(activeTab == "trash" ? "active" : "")" id="trashLinkSent">
+                    <i class="fas fa-trash-alt"></i>
+                    <span>Koš</span>
+                </a>
             </nav>
         </aside>
 

@@ -1,14 +1,15 @@
 @model List<sum.Models.Message>
 @{
-    ViewData["Title"] = "Příchozí pošta";
+    ViewData["Title"] = ViewBag.ActiveTab as string == "trash" ? "Koš" : "Příchozí pošta";
     var activeTab = ViewBag.ActiveTab as string ?? "inbox";
     var unreadCount = (int)(ViewBag.UnreadCount ?? 0);
+    var currentUserId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
 }
 
 <div class="messages-page">
     <div class="messages-header animate-in">
         <h1><i class="fas fa-envelope"></i> Školní pošta</h1>
-        <p>Vaše příchozí zprávy</p>
+        <p>@(activeTab == "trash" ? "Smazané zprávy (budou trvale smazány po 15 dnech)" : "Vaše příchozí zprávy")</p>
     </div>
 
     <div class="messages-layout animate-in animate-delay-1">
@@ -30,6 +31,10 @@
                     <i class="fas fa-paper-plane"></i>
                     <span>Odeslaná</span>
                 </a>
+                <a asp-action="Trash" class="msg-nav-item @(activeTab == "trash" ? "active" : "")" id="trashLink">
+                    <i class="fas fa-trash-alt"></i>
+                    <span>Koš</span>
+                </a>
             </nav>
         </aside>
 
@@ -46,13 +51,16 @@
             {
                 <div class="messages-empty">
                     <div class="empty-icon">
-                        <i class="fas fa-inbox"></i>
+                        <i class="fas @(activeTab == "trash" ? "fa-trash-alt" : "fa-inbox")"></i>
                     </div>
-                    <h3>Žádné zprávy</h3>
-                    <p>Vaše schránka je prázdná. Začněte konverzaci!</p>
-                    <a asp-action="Compose" class="btn-primary-custom">
-                        <i class="fas fa-pen"></i> Napsat zprávu
-                    </a>
+                    <h3>@(activeTab == "trash" ? "Koš je prázdný" : "Žádné zprávy")</h3>
+                    <p>@(activeTab == "trash" ? "Nemáte žádné smazané zprávy. Zprávy přesunuté do koše jsou po 15 dnech automaticky odstraněny." : "Vaše schránka je prázdná. Začněte konverzaci!")</p>
+                    @if (activeTab != "trash")
+                    {
+                        <a asp-action="Compose" class="btn-primary-custom">
+                            <i class="fas fa-pen"></i> Napsat zprávu
+                        </a>
+                    }
                 </div>
             }
             else
@@ -60,17 +68,29 @@
                 <div class="messages-list">
                     @foreach (var msg in Model)
                     {
-                        <a asp-action="Read" asp-route-id="@msg.SecureId" class="message-row @(!msg.IsRead ? "unread" : "")" id="msg-@msg.Id">
-                            <div class="msg-avatar">
+                        var isSentByMe = msg.SenderId == currentUserId;
+                        var isUnreadIncoming = !msg.IsRead && !isSentByMe;
+
+                        <a asp-action="Read" asp-route-id="@msg.SecureId" class="message-row @(isUnreadIncoming ? "unread" : "")" id="msg-@msg.Id">
+                            <div class="msg-avatar @(isSentByMe ? "sent-avatar" : "")">
                                 <i class="fas fa-user-circle"></i>
                             </div>
                             <div class="msg-info">
                                 <div class="msg-top">
-                                    <span class="msg-sender">@(msg.Sender?.FullName ?? msg.Sender?.Email ?? "Neznámý")</span>
+                                    <span class="msg-sender">
+                                        @if (isSentByMe)
+                                        {
+                                            @:Komu: @(msg.Recipient?.FullName ?? msg.Recipient?.Email ?? "Neznámý")
+                                        }
+                                        else
+                                        {
+                                            @(msg.Sender?.FullName ?? msg.Sender?.Email ?? "Neznámý")
+                                        }
+                                    </span>
                                     <span class="msg-date">@msg.SentAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</span>
                                 </div>
                                 <div class="msg-subject">
-                                    @if (!msg.IsRead)
+                                    @if (isUnreadIncoming)
                                     {
                                         <span class="unread-dot"></span>
                                     }

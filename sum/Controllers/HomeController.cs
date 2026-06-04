@@ -34,7 +34,7 @@ namespace sum.Controllers
                 return RedirectToAction("Login", "Account");
 
             var unreadMessagesCount = await _db.Messages
-                .CountAsync(m => m.RecipientId == userId && !m.IsRead);
+                .CountAsync(m => m.RecipientId == userId && !m.IsRead && !m.RecipientDeleted);
 
             if (user.Role == "Teacher")
             {
@@ -60,8 +60,13 @@ namespace sum.Controllers
                 double gradeAvg = 1.0 + (normalized * 0.8 + 0.2) * 3.5;
                 gradeAvg = Math.Round(Math.Clamp(gradeAvg, 1.0, 4.5), 2);
 
+                var completedHomeworkIds = await _db.HomeworkCompletions
+                    .Where(hc => hc.StudentId == userId)
+                    .Select(hc => hc.HomeworkId)
+                    .ToListAsync();
+
                 var pendingHomeworksCount = await _db.Homeworks
-                    .CountAsync(h => h.Deadline > DateTime.UtcNow);
+                    .CountAsync(h => h.Deadline > DateTime.UtcNow && !_db.HomeworkCompletions.Any(hc => hc.StudentId == userId && hc.HomeworkId == h.Id));
 
                 var homeworks = await _db.Homeworks
                     .Include(h => h.Teacher)
@@ -71,9 +76,49 @@ namespace sum.Controllers
                 ViewBag.GradeAverage = gradeAvg;
                 ViewBag.PendingHomework = pendingHomeworksCount;
                 ViewBag.UnreadMessages = unreadMessagesCount;
+                ViewBag.CompletedHomeworkIds = completedHomeworkIds;
 
                 return View(homeworks);
             }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CompleteHomework(int id)
+        {
+            if (User.Identity?.IsAuthenticated != true)
+                return RedirectToAction("Login", "Account");
+
+            var userIdClaim = User.FindFirst("UserId")?.Value;
+            if (userIdClaim == null || !int.TryParse(userIdClaim, out int userId))
+                return RedirectToAction("Login", "Account");
+
+            var user = await _db.Users.FindAsync(userId);
+            if (user == null || user.Role != "Student")
+            {
+                return Forbid();
+            }
+
+            var homework = await _db.Homeworks.FindAsync(id);
+            if (homework == null) return NotFound();
+
+            var alreadyCompleted = await _db.HomeworkCompletions
+                .AnyAsync(hc => hc.StudentId == userId && hc.HomeworkId == id);
+
+            if (!alreadyCompleted)
+            {
+                var completion = new HomeworkCompletion
+                {
+                    StudentId = userId,
+                    HomeworkId = id,
+                    CompletedAt = DateTime.UtcNow
+                };
+                _db.HomeworkCompletions.Add(completion);
+                await _db.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Domácí úkol byl splněn!";
+            }
+
+            return RedirectToAction("Dashboard");
         }
 
         [HttpPost]

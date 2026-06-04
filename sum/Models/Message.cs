@@ -63,5 +63,10 @@ namespace sum.Models
         /// A randomized unique secure identifier for URLs to prevent enumeration/guessing.
         /// </summary>
         public Guid SecureId { get; set; } = Guid.NewGuid();
+
+        public bool SenderDeleted { get; set; } = false;
+        public DateTime? SenderDeletedAt { get; set; }
+        public bool RecipientDeleted { get; set; } = false;
+        public DateTime? RecipientDeletedAt { get; set; }
     }
 }

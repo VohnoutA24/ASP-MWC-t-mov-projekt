@@ -10,6 +10,7 @@ namespace sum.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Message> Messages { get; set; }
         public DbSet<Homework> Homeworks { get; set; }
+        public DbSet<HomeworkCompletion> HomeworkCompletions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -47,6 +48,21 @@ namespace sum.Data
 
                 entity.HasIndex(h => h.TeacherId);
                 entity.HasIndex(h => h.Deadline);
+            });
+
+            modelBuilder.Entity<HomeworkCompletion>(entity =>
+            {
+                entity.HasIndex(hc => new { hc.StudentId, hc.HomeworkId }).IsUnique();
+
+                entity.HasOne(hc => hc.Student)
+                    .WithMany()
+                    .HasForeignKey(hc => hc.StudentId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(hc => hc.Homework)
+                    .WithMany()
+                    .HasForeignKey(hc => hc.HomeworkId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
         }
     }

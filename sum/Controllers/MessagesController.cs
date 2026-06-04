@@ -34,7 +34,7 @@ namespace sum.Controllers
 
             var messages = await _db.Messages
                 .Include(m => m.Sender)
-                .Where(m => m.RecipientId == userId.Value)
+                .Where(m => m.RecipientId == userId.Value && !m.RecipientDeleted)
                 .OrderByDescending(m => m.SentAt)
                 .ToListAsync();
 
@@ -58,7 +58,7 @@ namespace sum.Controllers
 
             var messages = await _db.Messages
                 .Include(m => m.Recipient)
-                .Where(m => m.SenderId == userId.Value)
+                .Where(m => m.SenderId == userId.Value && !m.SenderDeleted)
                 .OrderByDescending(m => m.SentAt)
                 .ToListAsync();
 
@@ -67,6 +67,11 @@ namespace sum.Controllers
                 m.Subject = EncryptionHelper.Decrypt(m.Subject);
                 m.Body = EncryptionHelper.Decrypt(m.Body);
             }
+
+            // For unread messages count in sidebar
+            var inboxUnreadCount = await _db.Messages
+                .CountAsync(m => m.RecipientId == userId.Value && !m.IsRead && !m.RecipientDeleted);
+            ViewBag.UnreadCount = inboxUnreadCount;
 
             ViewBag.ActiveTab = "sent";
             return View(messages);
@@ -310,9 +315,176 @@ namespace sum.Controllers
             if (userId == null) return Json(new { count = 0 });
 
             var count = await _db.Messages
-                .CountAsync(m => m.RecipientId == userId.Value && !m.IsRead);
+                .CountAsync(m => m.RecipientId == userId.Value && !m.IsRead && !m.RecipientDeleted);
 
             return Json(new { count });
+        }
+
+        // GET: /Messages/Trash
+        [HttpGet]
+        public async Task<IActionResult> Trash()
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null) return RedirectToAction("Login", "Account");
+
+            // Clean up expired trash messages
+            var cutoff = DateTime.UtcNow.AddDays(-15);
+            var expiredMessages = await _db.Messages
+                .Where(m => 
+                    (m.SenderDeleted && m.SenderDeletedAt <= cutoff) &&
+                    (m.RecipientDeleted && m.RecipientDeletedAt <= cutoff))
+                .ToListAsync();
+            if (expiredMessages.Any())
+            {
+                _db.Messages.RemoveRange(expiredMessages);
+                await _db.SaveChangesAsync();
+            }
+
+            var fifteenDaysAgo = DateTime.UtcNow.AddDays(-15);
+            var messages = await _db.Messages
+                .Include(m => m.Sender)
+                .Include(m => m.Recipient)
+                .Where(m => 
+                    (m.RecipientId == userId.Value && m.RecipientDeleted && m.RecipientDeletedAt > fifteenDaysAgo) ||
+                    (m.SenderId == userId.Value && m.SenderDeleted && m.SenderDeletedAt > fifteenDaysAgo))
+                .OrderByDescending(m => m.SentAt)
+                .ToListAsync();
+
+            foreach (var m in messages)
+            {
+                m.Subject = EncryptionHelper.Decrypt(m.Subject);
+                m.Body = EncryptionHelper.Decrypt(m.Body);
+            }
+
+            var inboxUnreadCount = await _db.Messages
+                .CountAsync(m => m.RecipientId == userId.Value && !m.IsRead && !m.RecipientDeleted);
+            ViewBag.UnreadCount = inboxUnreadCount;
+
+            ViewBag.ActiveTab = "trash";
+            return View("Index", messages);
+        }
+
+        // POST: /Messages/Delete/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(string id)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null) return RedirectToAction("Login", "Account");
+
+            Guid? secureId = Guid.TryParse(id, out var g) ? g : null;
+            int? numericId = int.TryParse(id, out var n) ? n : null;
+
+            var message = await _db.Messages
+                .FirstOrDefaultAsync(m => 
+                    ((secureId != null && m.SecureId == secureId) || (numericId != null && m.Id == numericId)) &&
+                    (m.RecipientId == userId.Value || m.SenderId == userId.Value));
+
+            if (message == null) return NotFound();
+
+            if (message.RecipientId == userId.Value)
+            {
+                message.RecipientDeleted = true;
+                message.RecipientDeletedAt = DateTime.UtcNow;
+            }
+            if (message.SenderId == userId.Value)
+            {
+                message.SenderDeleted = true;
+                message.SenderDeletedAt = DateTime.UtcNow;
+            }
+
+            await _db.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Zpráva byla přesunuta do koše.";
+
+            if (message.RecipientId == userId.Value && !message.SenderDeleted)
+                return RedirectToAction("Index");
+            else
+                return RedirectToAction("Sent");
+        }
+
+        // POST: /Messages/Restore/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Restore(string id)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null) return RedirectToAction("Login", "Account");
+
+            Guid? secureId = Guid.TryParse(id, out var g) ? g : null;
+            int? numericId = int.TryParse(id, out var n) ? n : null;
+
+            var message = await _db.Messages
+                .FirstOrDefaultAsync(m => 
+                    ((secureId != null && m.SecureId == secureId) || (numericId != null && m.Id == numericId)) &&
+                    (m.RecipientId == userId.Value || m.SenderId == userId.Value));
+
+            if (message == null) return NotFound();
+
+            if (message.RecipientId == userId.Value)
+            {
+                message.RecipientDeleted = false;
+                message.RecipientDeletedAt = null;
+            }
+            if (message.SenderId == userId.Value)
+            {
+                message.SenderDeleted = false;
+                message.SenderDeletedAt = null;
+            }
+
+            await _db.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Zpráva byla obnovena z koše.";
+
+            return RedirectToAction("Trash");
+        }
+
+        // POST: /Messages/DeletePermanently/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeletePermanently(string id)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null) return RedirectToAction("Login", "Account");
+
+            Guid? secureId = Guid.TryParse(id, out var g) ? g : null;
+            int? numericId = int.TryParse(id, out var n) ? n : null;
+
+            var message = await _db.Messages
+                .FirstOrDefaultAsync(m => 
+                    ((secureId != null && m.SecureId == secureId) || (numericId != null && m.Id == numericId)) &&
+                    (m.RecipientId == userId.Value || m.SenderId == userId.Value));
+
+            if (message == null) return NotFound();
+
+            bool deleteFromDb = false;
+
+            if (message.RecipientId == userId.Value)
+            {
+                message.RecipientDeleted = true;
+                message.RecipientDeletedAt = DateTime.UtcNow.AddDays(-30);
+                if (message.SenderDeleted)
+                {
+                    deleteFromDb = true;
+                }
+            }
+            if (message.SenderId == userId.Value)
+            {
+                message.SenderDeleted = true;
+                message.SenderDeletedAt = DateTime.UtcNow.AddDays(-30);
+                if (message.RecipientDeleted)
+                {
+                    deleteFromDb = true;
+                }
+            }
+
+            if (deleteFromDb)
+            {
+                _db.Messages.Remove(message);
+            }
+
+            await _db.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Zpráva byla trvale smazána.";
+
+            return RedirectToAction("Trash");
         }
     }
 }

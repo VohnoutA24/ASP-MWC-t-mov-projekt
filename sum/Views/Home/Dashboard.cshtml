@@ -78,12 +78,17 @@
                                 <th>Zadal(a)</th>
                                 <th>Termín odevzdání</th>
                                 <th>Stav</th>
+                                <th>Akce</th>
                             </tr>
                         </thead>
                         <tbody>
+                            @{
+                                var completedIds = ViewBag.CompletedHomeworkIds as List<int> ?? new List<int>();
+                            }
                             @foreach (var hw in Model)
                             {
                                 var isExpired = hw.Deadline < DateTime.UtcNow;
+                                var isCompleted = completedIds.Contains(hw.Id);
                                 var badgeClass = "badge-subject " + (hw.Subject switch
                                 {
                                     "Matematika" => "badge-math",
@@ -115,13 +120,33 @@
                                         @hw.Deadline.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
                                     </td>
                                     <td>
-                                        @if (isExpired)
+                                        @if (isCompleted)
+                                        {
+                                            <span class="badge bg-success" style="font-size: 0.78rem; background-color: var(--success) !important;">Splněno</span>
+                                        }
+                                        else if (isExpired)
                                         {
                                             <span class="badge bg-secondary" style="font-size: 0.78rem;">Po termínu</span>
                                         }
                                         else
                                         {
-                                            <span class="badge bg-success" style="font-size: 0.78rem; background-color: var(--success) !important;">Aktivní</span>
+                                            <span class="badge bg-primary" style="font-size: 0.78rem; background-color: var(--primary) !important;">Aktivní</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (!isCompleted)
+                                        {
+                                            <form asp-controller="Home" asp-action="CompleteHomework" method="post" style="display:inline;" onclick="event.stopPropagation();">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@hw.Id" />
+                                                <button type="submit" class="btn-primary-custom" style="padding: 0.25rem 0.65rem; font-size: 0.75rem; border-radius: var(--radius-sm); box-shadow: none;">
+                                                    <i class="fas fa-check"></i> Splnit
+                                                </button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <span style="color: var(--success); font-weight: 600; font-size: 0.85rem;"><i class="fas fa-check-circle"></i> Odevzdáno</span>
                                         }
                                     </td>
                                 </tr>

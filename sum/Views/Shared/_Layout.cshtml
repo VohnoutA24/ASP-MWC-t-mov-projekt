@@ -8,11 +8,11 @@
         var userIdClaim = User.FindFirst("UserId")?.Value;
         if (int.TryParse(userIdClaim, out int userId))
         {
-            unreadMessagesCount = DbContext.Messages.Count(m => m.RecipientId == userId && !m.IsRead);
+            unreadMessagesCount = DbContext.Messages.Count(m => m.RecipientId == userId && !m.IsRead && !m.RecipientDeleted);
             var roleClaim = User.FindFirst(ClaimTypes.Role)?.Value;
             if (roleClaim == "Student")
             {
-                pendingHomeworkCount = DbContext.Homeworks.Count(h => h.Deadline > DateTime.UtcNow);
+                pendingHomeworkCount = DbContext.Homeworks.Count(h => h.Deadline > DateTime.UtcNow && !DbContext.HomeworkCompletions.Any(hc => hc.StudentId == userId && hc.HomeworkId == h.Id));
             }
             else if (roleClaim == "Teacher")
             {
