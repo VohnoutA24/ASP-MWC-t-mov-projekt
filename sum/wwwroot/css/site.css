@@ -2809,3 +2809,18 @@ body.theme-transitioning * {
     background: rgba(198, 40, 40, 0.2);
 }
 
+/* Navigation floaty notification badge */
+.floaty-badge {
+    position: relative;
+    top: -6px;
+    font-size: 0.68rem;
+    padding: 0.15rem 0.35rem;
+    font-weight: 700;
+    line-height: 1;
+    border-radius: var(--radius-full);
+    background-color: var(--danger) !important;
+    color: white;
+    box-shadow: 0 2px 4px rgba(198, 40, 40, 0.25);
+    margin-left: 2px;
+}
+

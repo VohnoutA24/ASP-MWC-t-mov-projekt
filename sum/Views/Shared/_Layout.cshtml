@@ -1,3 +1,26 @@
+@inject sum.Data.AppDbContext DbContext
+@using System.Security.Claims
+@{
+    int unreadMessagesCount = 0;
+    int pendingHomeworkCount = 0;
+    if (User.Identity?.IsAuthenticated == true)
+    {
+        var userIdClaim = User.FindFirst("UserId")?.Value;
+        if (int.TryParse(userIdClaim, out int userId))
+        {
+            unreadMessagesCount = DbContext.Messages.Count(m => m.RecipientId == userId && !m.IsRead);
+            var roleClaim = User.FindFirst(ClaimTypes.Role)?.Value;
+            if (roleClaim == "Student")
+            {
+                pendingHomeworkCount = DbContext.Homeworks.Count(h => h.Deadline > DateTime.UtcNow);
+            }
+            else if (roleClaim == "Teacher")
+            {
+                pendingHomeworkCount = DbContext.Homeworks.Count(h => h.TeacherId == userId && h.Deadline > DateTime.UtcNow);
+            }
+        }
+    }
+}
 <!DOCTYPE html>
 <html lang="cs">
 <head>
@@ -57,11 +80,19 @@
                             <li>
                                 <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Dashboard">
                                     <i class="fas fa-tachometer-alt"></i> Nástěnka
+                                    @if (pendingHomeworkCount > 0)
+                                    {
+                                        <span class="badge bg-danger rounded-pill floaty-badge">@pendingHomeworkCount</span>
+                                    }
                                 </a>
                             </li>
                             <li>
                                 <a class="nav-link" asp-area="" asp-controller="Messages" asp-action="Index">
                                     <i class="fas fa-envelope"></i> Pošta
+                                    @if (unreadMessagesCount > 0)
+                                    {
+                                        <span class="badge bg-danger rounded-pill floaty-badge">@unreadMessagesCount</span>
+                                    }
                                 </a>
                             </li>
                             <li>
