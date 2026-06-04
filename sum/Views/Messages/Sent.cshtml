@@ -86,7 +86,7 @@
                                 <div class="msg-info">
                                     <div class="msg-top">
                                         <span class="msg-sender">Komu: @(msg.Recipient?.FullName ?? msg.Recipient?.Email ?? "Neznámý")</span>
-                                        <span class="msg-date">@msg.SentAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</span>
+                                        <span class="msg-date">@msg.SentAt.ToCzechTime().ToString("dd.MM.yyyy HH:mm")</span>
                                     </div>
                                     <div class="msg-subject" style="display: flex; align-items: center; gap: 0.5rem;">
                                         <input type="checkbox" class="msg-select-checkbox" data-id="@msg.SecureId" onclick="event.stopPropagation();" style="cursor: pointer; transform: scale(1.1); margin-right: 0.25rem;" />

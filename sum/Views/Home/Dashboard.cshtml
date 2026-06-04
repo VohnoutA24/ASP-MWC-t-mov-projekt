@@ -110,14 +110,14 @@
                                     data-badge-class="@badgeClass"
                                     data-description="@hw.Description"
                                     data-teacher="@(hw.Teacher?.FullName ?? "Učitel")"
-                                    data-deadline="@hw.Deadline.ToLocalTime().ToString("dd.MM.yyyy HH:mm")"
-                                    data-created="@hw.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")">
+                                    data-deadline="@hw.Deadline.ToCzechTime().ToString("dd.MM.yyyy HH:mm")"
+                                    data-created="@hw.CreatedAt.ToCzechTime().ToString("dd.MM.yyyy HH:mm")">
                                     <td><span class="@badgeClass">@hw.Subject</span></td>
                                     <td style="font-weight: 600; color: var(--primary);">@hw.Title</td>
                                     <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="@hw.Description">@hw.Description</td>
                                     <td>@(hw.Teacher?.FullName ?? "Učitel")</td>
                                     <td style="color: @(isExpired ? "var(--danger)" : "inherit"); font-weight: @(isExpired ? "normal" : "600")">
-                                        @hw.Deadline.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                                        @hw.Deadline.ToCzechTime().ToString("dd.MM.yyyy HH:mm")
                                     </td>
                                     <td>
                                         @if (isCompleted)
