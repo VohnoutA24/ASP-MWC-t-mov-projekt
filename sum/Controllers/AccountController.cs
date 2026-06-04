@@ -133,9 +133,6 @@ namespace sum.Controllers
         [HttpGet]
         public IActionResult Register()
         {
-            if (User.Identity?.IsAuthenticated == true)
-                return RedirectToAction("Index", "Home");
-
             return View();
         }
 
@@ -169,8 +166,44 @@ namespace sum.Controllers
             _db.Users.Add(user);
             await _db.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = "Registrace proběhla úspěšně! Nyní se můžete přihlásit.";
-            return RedirectToAction("Login");
+            // Automatically sign in the newly registered user
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, user.Email),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Role, user.Role),
+                new Claim("FullName", user.FullName ?? user.Email),
+                new Claim("UserId", user.Id.ToString())
+            };
+
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var principal = new ClaimsPrincipal(identity);
+
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                principal,
+                new AuthenticationProperties
+                {
+                    IsPersistent = false,
+                    ExpiresUtc = DateTimeOffset.UtcNow.AddHours(8)
+                });
+
+            // Save to active accounts list
+            var activeAccounts = GetActiveAccounts();
+            if (!activeAccounts.Any(a => a.UserId == user.Id))
+            {
+                activeAccounts.Add(new ActiveAccountDto
+                {
+                    UserId = user.Id,
+                    Email = user.Email,
+                    FullName = user.FullName ?? user.Email,
+                    Role = user.Role
+                });
+                SaveActiveAccounts(activeAccounts);
+            }
+
+            TempData["SuccessMessage"] = "Registrace proběhla úspěšně! Váš nový účet byl vytvořen a přihlášen.";
+            return RedirectToAction("Dashboard", "Home");
         }
 
         // POST: /Account/Logout
