@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using sum.Data;
 using sum.Models;
 using System.Diagnostics;
 
@@ -6,46 +8,138 @@ namespace sum.Controllers
 {
     public class HomeController : Controller
     {
+        private readonly AppDbContext _db;
+
+        public HomeController(AppDbContext db)
+        {
+            _db = db;
+        }
+
         public IActionResult Index()
         {
             return View();
         }
 
-        public IActionResult Dashboard()
+        public async Task<IActionResult> Dashboard()
         {
             if (User.Identity?.IsAuthenticated != true)
                 return RedirectToAction("Login", "Account");
 
-            // Deterministic per-user randomization using UserId as seed
             var userIdClaim = User.FindFirst("UserId")?.Value;
-            int userId = int.TryParse(userIdClaim, out var id) ? id : 1;
-            var rng = new Random(userId * 31337);
+            if (userIdClaim == null || !int.TryParse(userIdClaim, out int userId))
+                return RedirectToAction("Login", "Account");
 
-            // Grade average: weighted towards 2.4, range 1.0-4.5
-            // Use normal-ish distribution via multiple uniform rolls
-            double sum = 0;
-            for (int i = 0; i < 6; i++)
-                sum += rng.NextDouble();
-            double normalized = sum / 6.0; // ~0.5 center, roughly normal
-            double gradeAvg = 1.0 + normalized * 3.5; // range 1.0-4.5
-            // Shift center towards 2.4: map 0.5 -> 2.4
-            gradeAvg = 1.0 + (normalized * 0.8 + 0.2) * 3.5;
-            gradeAvg = Math.Round(Math.Clamp(gradeAvg, 1.0, 4.5), 2);
+            var user = await _db.Users.FindAsync(userId);
+            if (user == null)
+                return RedirectToAction("Login", "Account");
 
-            // Homework: weighted towards 1-2
-            // Weights: 0=5%, 1=35%, 2=35%, 3=15%, 4=10%
-            int roll = rng.Next(100);
-            int homework;
-            if (roll < 5) homework = 0;
-            else if (roll < 40) homework = 1;
-            else if (roll < 75) homework = 2;
-            else if (roll < 90) homework = 3;
-            else homework = 4;
+            var unreadMessagesCount = await _db.Messages
+                .CountAsync(m => m.RecipientId == userId && !m.IsRead);
 
-            ViewBag.GradeAverage = gradeAvg;
-            ViewBag.PendingHomework = homework;
+            if (user.Role == "Teacher")
+            {
+                var homeworks = await _db.Homeworks
+                    .Where(h => h.TeacherId == userId)
+                    .OrderByDescending(h => h.Deadline)
+                    .ToListAsync();
 
-            return View();
+                ViewBag.UnreadMessages = unreadMessagesCount;
+                ViewBag.TotalHomeworks = homeworks.Count;
+                ViewBag.ActiveHomeworks = homeworks.Count(h => h.Deadline > DateTime.UtcNow);
+
+                return View("TeacherDashboard", homeworks);
+            }
+            else
+            {
+                // Deterministic per-user randomization for grade average and attendance
+                var rng = new Random(userId * 31337);
+                double sum = 0;
+                for (int i = 0; i < 6; i++)
+                    sum += rng.NextDouble();
+                double normalized = sum / 6.0;
+                double gradeAvg = 1.0 + (normalized * 0.8 + 0.2) * 3.5;
+                gradeAvg = Math.Round(Math.Clamp(gradeAvg, 1.0, 4.5), 2);
+
+                var pendingHomeworksCount = await _db.Homeworks
+                    .CountAsync(h => h.Deadline > DateTime.UtcNow);
+
+                var homeworks = await _db.Homeworks
+                    .Include(h => h.Teacher)
+                    .OrderBy(h => h.Deadline)
+                    .ToListAsync();
+
+                ViewBag.GradeAverage = gradeAvg;
+                ViewBag.PendingHomework = pendingHomeworksCount;
+                ViewBag.UnreadMessages = unreadMessagesCount;
+
+                return View(homeworks);
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AssignHomework(string title, string subject, string? description, DateTime deadline)
+        {
+            if (User.Identity?.IsAuthenticated != true)
+                return RedirectToAction("Login", "Account");
+
+            var userIdClaim = User.FindFirst("UserId")?.Value;
+            if (userIdClaim == null || !int.TryParse(userIdClaim, out int userId))
+                return RedirectToAction("Login", "Account");
+
+            var user = await _db.Users.FindAsync(userId);
+            if (user == null || user.Role != "Teacher")
+            {
+                return Forbid();
+            }
+
+            if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(subject))
+            {
+                TempData["ErrorMessage"] = "Název úkolu a předmět jsou povinné.";
+                return RedirectToAction("Dashboard");
+            }
+
+            var homework = new Homework
+            {
+                Title = title.Trim(),
+                Subject = subject.Trim(),
+                Description = description?.Trim(),
+                Deadline = deadline.ToUniversalTime(),
+                TeacherId = userId,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _db.Homeworks.Add(homework);
+            await _db.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Domácí úkol byl úspěšně zadán!";
+            return RedirectToAction("Dashboard");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteHomework(int id)
+        {
+            if (User.Identity?.IsAuthenticated != true)
+                return RedirectToAction("Login", "Account");
+
+            var userIdClaim = User.FindFirst("UserId")?.Value;
+            if (userIdClaim == null || !int.TryParse(userIdClaim, out int userId))
+                return RedirectToAction("Login", "Account");
+
+            var homework = await _db.Homeworks.FindAsync(id);
+            if (homework == null) return NotFound();
+
+            if (homework.TeacherId != userId)
+            {
+                return Forbid();
+            }
+
+            _db.Homeworks.Remove(homework);
+            await _db.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Domácí úkol byl úspěšně smazán.";
+            return RedirectToAction("Dashboard");
         }
 
         public IActionResult Timetable(int grade = 8)

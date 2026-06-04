@@ -1,0 +1,218 @@
+@model List<sum.Models.Homework>
+@{
+    ViewData["Title"] = "Učitelská nástěnka";
+    var fullName = User.FindFirst("FullName")?.Value ?? User.Identity?.Name ?? "Učitel";
+    var unreadMessages = ViewBag.UnreadMessages ?? 0;
+    var totalHomeworks = ViewBag.TotalHomeworks ?? 0;
+    var activeHomeworks = ViewBag.ActiveHomeworks ?? 0;
+}
+
+<div class="dashboard-page">
+    <div class="dashboard-header animate-in">
+        <h1>🎓 Učitelský portál — @fullName</h1>
+        <p>Tady můžete zadávat domácí úkoly studentům a spravovat své zadané práce.</p>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success animate-in" style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: var(--radius-sm); padding: 0.85rem; margin-bottom: 1.5rem; color: #065f46; display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem;">
+            <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger animate-in" style="background: #fef2f2; border: 1px solid #fecaca; border-radius: var(--radius-sm); padding: 0.85rem; margin-bottom: 1.5rem; color: #b91c1c; display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem;">
+            <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="dashboard-grid">
+        <div class="dash-card animate-in animate-delay-1">
+            <div class="dash-card-header">
+                <h3>Celkem zadaných úkolů</h3>
+                <div class="dash-card-icon" style="background: #dbeafe; color: #1e40af;">
+                    <i class="fas fa-archive"></i>
+                </div>
+            </div>
+            <div class="value" style="color: #1e40af;">@totalHomeworks</div>
+            <div class="sub">Celkový počet vámi zadaných úkolů</div>
+        </div>
+
+        <div class="dash-card animate-in animate-delay-2">
+            <div class="dash-card-header">
+                <h3>Aktivní úkoly</h3>
+                <div class="dash-card-icon" style="background: #d1fae5; color: #065f46;">
+                    <i class="fas fa-hourglass-half"></i>
+                </div>
+            </div>
+            <div class="value" style="color: #065f46;">@activeHomeworks</div>
+            <div class="sub">Úkoly, u kterých ještě nevypršel termín</div>
+        </div>
+
+        <div class="dash-card animate-in animate-delay-3">
+            <div class="dash-card-header">
+                <h3>Zprávy</h3>
+                <div class="dash-card-icon" style="background: #ede9fe; color: #5b21b6;">
+                    <i class="fas fa-envelope"></i>
+                </div>
+            </div>
+            <div class="value" style="color: #5b21b6;">@unreadMessages</div>
+            <div class="sub">Nepřečtené zprávy ve schránce</div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Assign Homework Form -->
+        <div class="col-lg-5 animate-in animate-delay-4" style="margin-bottom: 2rem;">
+            <div class="schedule-card" style="height: 100%;">
+                <h2><i class="fas fa-plus-circle" style="color: var(--primary);"></i> Zadat nový domácí úkol</h2>
+                <form asp-controller="Home" asp-action="AssignHomework" method="post" style="margin-top: 1.25rem;">
+                    @Html.AntiForgeryToken()
+                    
+                    <div class="form-group">
+                        <label for="subjectSelect">Předmět <span class="required">*</span></label>
+                        <select name="subject" id="subjectSelect" class="form-input" style="padding-left: 0.85rem;" required>
+                            <option value="">-- Vyberte předmět --</option>
+                            <option value="Matematika">Matematika</option>
+                            <option value="Český jazyk">Český jazyk</option>
+                            <option value="Anglický jazyk">Anglický jazyk</option>
+                            <option value="Fyzika">Fyzika</option>
+                            <option value="Dějepis">Dějepis</option>
+                            <option value="Chemie">Chemie</option>
+                            <option value="Zeměpis">Zeměpis</option>
+                            <option value="Informatika">Informatika</option>
+                            <option value="Občanská výchova">Občanská výchova</option>
+                            <option value="Přírodopis">Přírodopis</option>
+                            <option value="Tělesná výchova">Tělesná výchova</option>
+                            <option value="Výtvarná výchova">Výtvarná výchova</option>
+                            <option value="Hudební výchova">Hudební výchova</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="hwTitle">Název úkolu <span class="required">*</span></label>
+                        <input type="text" name="title" id="hwTitle" class="form-input" style="padding-left: 0.85rem;" placeholder="Např. Cvičení 14 na straně 42" required maxlength="200" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="hwDescription">Popis a instrukce</label>
+                        <textarea name="description" id="hwDescription" class="form-input" style="padding-left: 0.85rem; height: 100px; resize: vertical;" placeholder="Popište zadání, odevzdání nebo detaily úkolu..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="hwDeadline">Termín odevzdání <span class="required">*</span></label>
+                        <input type="datetime-local" name="deadline" id="hwDeadline" class="form-input" style="padding-left: 0.85rem;" required />
+                    </div>
+
+                    <button type="submit" class="btn-primary-custom" style="width: 100%; justify-content: center; border-radius: var(--radius-sm); margin-top: 0.5rem;">
+                        <i class="fas fa-paper-plane"></i> Odeslat zadání
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Assigned Homework List -->
+        <div class="col-lg-7 animate-in animate-delay-4" style="margin-bottom: 2rem;">
+            <div class="schedule-card" style="height: 100%;">
+                <h2><i class="fas fa-list-ul" style="color: var(--primary);"></i> Přehled vašich zadaných úkolů</h2>
+                @if (Model == null || !Model.Any())
+                {
+                    <p style="color: var(--text-secondary); padding: 1.5rem 0; font-size: 0.95rem;">Zatím jste nezadal(a) žádné úkoly. Použijte formulář vlevo.</p>
+                }
+                else
+                {
+                    <div class="table-responsive" style="margin-top: 1rem; overflow-x: auto;">
+                        <table class="schedule-table" style="width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th>Předmět</th>
+                                    <th>Název</th>
+                                    <th>Termín</th>
+                                    <th>Stav</th>
+                                    <th>Akce</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var hw in Model)
+                                {
+                                    var isExpired = hw.Deadline < DateTime.UtcNow;
+                                    var badgeClass = "badge-subject " + (hw.Subject switch
+                                    {
+                                        "Matematika" => "badge-math",
+                                        "Český jazyk" => "badge-czech",
+                                        "Anglický jazyk" => "badge-english",
+                                        "Fyzika" => "badge-physics",
+                                        "Informatika" => "badge-it",
+                                        "Chemie" => "badge-chemistry",
+                                        "Dějepis" => "badge-history",
+                                        "Zeměpis" => "badge-geography",
+                                        "Přírodopis" => "badge-biology",
+                                        "Občanská výchova" => "badge-civics",
+                                        _ => "badge-science"
+                                    });
+
+                                    <tr>
+                                        <td><span class="@badgeClass">@hw.Subject</span></td>
+                                        <td style="font-weight: 600;" title="@hw.Description">@hw.Title</td>
+                                        <td style="color: @(isExpired ? "var(--danger)" : "inherit"); font-weight: @(isExpired ? "normal" : "600")">
+                                            @hw.Deadline.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                                        </td>
+                                        <td>
+                                            @if (isExpired)
+                                            {
+                                                <span class="badge bg-secondary" style="font-size: 0.78rem;">Uzavřený</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-success" style="font-size: 0.78rem; background-color: var(--success) !important;">Aktivní</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <form asp-controller="Home" asp-action="DeleteHomework" method="post" style="display:inline;" onsubmit="return confirm('Opravdu chcete smazat tento úkol?');">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@hw.Id" />
+                                                <button type="submit" class="btn-logout" style="padding: 0.25rem 0.5rem; font-size: 0.78rem; border-color: #fecaca; background: #fef2f2; color: #b91c1c;">
+                                                    <i class="fas fa-trash-alt"></i> Smazat
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-quick-links animate-in" style="margin-top: 1rem;">
+        <a asp-controller="Messages" asp-action="Index" class="quick-link-card">
+            <i class="fas fa-envelope"></i>
+            <span>Přejít do pošty</span>
+        </a>
+        <a asp-controller="Home" asp-action="Timetable" class="quick-link-card">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Zobrazit rozvrh</span>
+        </a>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Pre-fill datetime-local min attribute with current time (CZ format adaptation)
+            const deadlineInput = document.getElementById('hwDeadline');
+            if (deadlineInput) {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                
+                deadlineInput.min = `${year}-${month}-${day}T${hours}:${minutes}`;
+            }
+        });
+    </script>
+}
