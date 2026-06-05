@@ -438,6 +438,7 @@ const E2E = (function () {
                             const privateKeyObj = await E2E.decryptPrivateKey(status.encryptedPrivateKey, aesKey);
                             const privateKeySession = await E2E.exportPrivateKeyToSession(privateKeyObj);
                             sessionStorage.setItem("decryptedPrivateKey", privateKeySession);
+                            sessionStorage.setItem("decryptedPrivateKeyEmail", userEmail);
                             sessionStorage.removeItem("derivedAesKey");
                             document.dispatchEvent(new CustomEvent("e2e-ready"));
                         } catch (e) {
@@ -546,6 +547,7 @@ const E2E = (function () {
                     const privateKeyObj = await E2E.decryptPrivateKey(encryptedPrivateKey, aesKey);
                     const privateKeySession = await E2E.exportPrivateKeyToSession(privateKeyObj);
                     sessionStorage.setItem("decryptedPrivateKey", privateKeySession);
+                    sessionStorage.setItem("decryptedPrivateKeyEmail", window.userEmail);
                     modal.style.display = "none";
                     document.dispatchEvent(new CustomEvent("e2e-ready"));
                 } else {
@@ -586,6 +588,7 @@ const E2E = (function () {
 
         const privateKeySession = await E2E.exportPrivateKeyToSession(keyPair.privateKey);
         sessionStorage.setItem("decryptedPrivateKey", privateKeySession);
+        sessionStorage.setItem("decryptedPrivateKeyEmail", window.userEmail);
         sessionStorage.removeItem("derivedAesKey");
 
         document.dispatchEvent(new CustomEvent("e2e-ready"));
@@ -594,5 +597,15 @@ const E2E = (function () {
 
 // Automatically initialize when page loads
 document.addEventListener("DOMContentLoaded", function() {
+    // Check if user switched accounts (mismatched cached email)
+    const userEmail = window.userEmail;
+    if (userEmail) {
+        const cachedEmail = sessionStorage.getItem("decryptedPrivateKeyEmail");
+        if (cachedEmail && cachedEmail.toLowerCase().trim() !== userEmail.toLowerCase().trim()) {
+            sessionStorage.removeItem("decryptedPrivateKey");
+            sessionStorage.removeItem("decryptedPrivateKeyEmail");
+            sessionStorage.removeItem("derivedAesKey");
+        }
+    }
     E2E.initializeMailbox();
 });
