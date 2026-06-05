@@ -55,4 +55,59 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const form = document.getElementById("registerForm");
+            if (form) {
+                form.addEventListener("submit", async function(e) {
+                    e.preventDefault();
+                    
+                    if (typeof $ !== 'undefined' && typeof $.fn.valid === 'function') {
+                        if (!$(this).valid()) {
+                            return;
+                        }
+                    }
+                    
+                    const email = document.getElementById("registerEmail").value;
+                    const password = document.getElementById("registerPassword").value;
+                    const btn = document.getElementById("registerSubmitBtn");
+                    
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Vytvářím klíče...';
+                    
+                    try {
+                        const aesKey = await E2E.deriveKey(password, email);
+                        const keyPair = await E2E.generateKeyPair();
+                        const publicKeyBase64 = await E2E.exportPublicKey(keyPair.publicKey);
+                        const encryptedPrivateKeyBase64 = await E2E.encryptPrivateKey(keyPair.privateKey, aesKey);
+                        
+                        const pubInput = document.createElement("input");
+                        pubInput.type = "hidden";
+                        pubInput.name = "PublicKey";
+                        pubInput.value = publicKeyBase64;
+                        form.appendChild(pubInput);
+                        
+                        const privInput = document.createElement("input");
+                        privInput.type = "hidden";
+                        privInput.name = "EncryptedPrivateKey";
+                        privInput.value = encryptedPrivateKeyBase64;
+                        form.appendChild(privInput);
+                        
+                        const rawKey = await window.crypto.subtle.exportKey("raw", aesKey);
+                        let binary = '';
+                        const bytes = new Uint8Array(rawKey);
+                        for (let i = 0; i < bytes.byteLength; i++) {
+                            binary += String.fromCharCode(bytes[i]);
+                        }
+                        const base64Key = window.btoa(binary);
+                        sessionStorage.setItem("derivedAesKey", base64Key);
+                    } catch (err) {
+                        console.error("E2E Register Key Generation Error", err);
+                    }
+                    
+                    form.submit();
+                });
+            }
+        });
+    </script>
 }

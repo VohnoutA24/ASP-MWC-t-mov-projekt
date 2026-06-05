@@ -32,11 +32,16 @@
         </div>
     </div>
 
+    @{
+        var isE2e = Model.Body != null && Model.Body.StartsWith("__E2E__:");
+    }
+
     <div class="read-container animate-in animate-delay-1">
-        <div class="read-card">
+        <div class="read-card @(isE2e ? "read-card-e2e" : "")"
+             @(isE2e ? Html.Raw($"data-e2e-payload=\"{Model.Body}\" data-is-sender=\"{(isSender ? "true" : "false")}\" data-download-url=\"{Url.Action("Download", new { id = Model.SecureId })}\" data-preview-url=\"{Url.Action("PublicAttachment", new { secureId = Model.SecureId })}\"") : null)>
             <!-- Header -->
             <div class="read-card-header">
-                <h1 class="read-subject">@Model.Subject</h1>
+                <h1 class="read-subject" id="readSubject">@(isE2e ? "Dešifrování..." : Model.Subject)</h1>
                 <div class="read-meta">
                     <div class="read-participants">
                         <div class="read-avatar">
@@ -62,7 +67,11 @@
 
             <!-- Body -->
             <div class="read-body">
-                @if (!string.IsNullOrEmpty(Model.Body))
+                @if (isE2e)
+                {
+                    <pre class="read-body-text" id="readBodyText">Dešifrování zprávy...</pre>
+                }
+                else if (!string.IsNullOrEmpty(Model.Body))
                 {
                     <pre class="read-body-text">@Model.Body</pre>
                 }
@@ -75,7 +84,7 @@
             <!-- Attachment -->
             @if (Model.AttachmentFileName != null)
             {
-                <div class="read-attachment">
+                <div class="read-attachment" id="attachmentArea" style="@(isE2e ? "display: none;" : "")">
                     <div class="attachment-card">
                         <div class="attachment-icon">
                             <i class="fas fa-file"></i>
@@ -109,6 +118,27 @@
                         </div>
                     }
                 </div>
+
+                @if (isE2e)
+                {
+                    <div class="read-attachment" id="e2eAttachmentArea">
+                        <div class="attachment-card">
+                            <div class="attachment-icon">
+                                <i class="fas fa-file"></i>
+                            </div>
+                            <div class="attachment-info">
+                                <span class="attachment-name" id="e2eAttachmentName">Načítání přílohy...</span>
+                                <span class="attachment-size" id="e2eAttachmentSize">...</span>
+                            </div>
+                            <button type="button" class="attachment-download" id="e2eAttachmentDownload" style="background: none; border: none; color: var(--primary); font-weight: 600; display: flex; align-items: center; gap: 0.35rem;">
+                                <i class="fas fa-download"></i> Stáhnout
+                            </button>
+                        </div>
+                        <div id="e2eAttachmentPreviewContainer" class="text-center" style="display: none; margin-top: 1.25rem; border-top: 1px dashed var(--border); padding-top: 1.25rem;">
+                            <!-- Previews injected here -->
+                        </div>
+                    </div>
+                }
             }
 
             <!-- Actions -->
@@ -156,3 +186,129 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const card = document.querySelector(".read-card-e2e");
+    if (!card) return;
+
+    document.addEventListener("e2e-ready", async function () {
+        const privateKeySession = sessionStorage.getItem("decryptedPrivateKey");
+        if (!privateKeySession) return;
+        
+        try {
+            const privateKeyObj = await E2E.importPrivateKeyFromSession(privateKeySession);
+            const payload = card.getAttribute("data-e2e-payload");
+            const isSender = card.getAttribute("data-is-sender") === "true";
+            
+            const decrypted = await E2E.decryptMessage(payload, privateKeyObj, isSender);
+            if (decrypted) {
+                // Update UI in-place
+                document.getElementById("readSubject").textContent = decrypted.subject;
+                document.title = decrypted.subject + " - ZŠ Chvalkovice";
+                document.getElementById("readBodyText").textContent = decrypted.body;
+                
+                // Check if E2E payload has attachment metadata
+                const payloadJson = JSON.parse(payload.substring(8));
+                if (payloadJson.attachment) {
+                    const attachmentMetadata = await E2E.decryptFileMetadata(
+                        JSON.stringify(payloadJson.attachment), 
+                        privateKeyObj, 
+                        isSender
+                    );
+                    
+                    if (attachmentMetadata) {
+                        const nameEl = document.getElementById("e2eAttachmentName");
+                        const sizeEl = document.getElementById("e2eAttachmentSize");
+                        const downloadBtn = document.getElementById("e2eAttachmentDownload");
+                        
+                        nameEl.textContent = attachmentMetadata.name;
+                        
+                        // Try to get size from model
+                        const sizeKb = @(Model.AttachmentSize ?? 0) / 1024.0;
+                        const sizeMb = sizeKb / 1024.0;
+                        const sizeText = sizeMb >= 1 ? sizeMb.toFixed(1) + " MB" : sizeKb.toFixed(0) + " KB";
+                        sizeEl.textContent = sizeText;
+                        
+                        // Handle download
+                        const downloadUrl = card.getAttribute("data-download-url");
+                        downloadBtn.onclick = async function() {
+                            downloadBtn.disabled = true;
+                            downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Stahování...';
+                            
+                            try {
+                                const response = await fetch(downloadUrl);
+                                if (!response.ok) throw new Error("Chyba při stahování souboru.");
+                                const encryptedBuffer = await response.arrayBuffer();
+                                
+                                const decryptedBlob = await E2E.decryptFile(
+                                    encryptedBuffer, 
+                                    JSON.stringify(payloadJson.attachment), 
+                                    privateKeyObj, 
+                                    isSender
+                                );
+                                
+                                // Trigger client-side file save
+                                const blobUrl = URL.createObjectURL(decryptedBlob);
+                                const a = document.createElement("a");
+                                a.href = blobUrl;
+                                a.download = attachmentMetadata.name;
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                                URL.revokeObjectURL(blobUrl);
+                            } catch (err) {
+                                console.error(err);
+                                alert("Chyba při stahování nebo dešifrování přílohy.");
+                            } finally {
+                                downloadBtn.disabled = false;
+                                downloadBtn.innerHTML = '<i class="fas fa-download"></i> Stáhnout';
+                            }
+                        };
+                        
+                        // Previews
+                        if (attachmentMetadata.type.startsWith("image/") || attachmentMetadata.type.startsWith("video/")) {
+                            const previewContainer = document.getElementById("e2eAttachmentPreviewContainer");
+                            previewContainer.style.display = "block";
+                            previewContainer.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Načítání náhledu...';
+                            
+                            try {
+                                const response = await fetch(downloadUrl);
+                                if (response.ok) {
+                                    const encryptedBuffer = await response.arrayBuffer();
+                                    const decryptedBlob = await E2E.decryptFile(
+                                        encryptedBuffer, 
+                                        JSON.stringify(payloadJson.attachment), 
+                                        privateKeyObj, 
+                                        isSender
+                                    );
+                                    
+                                    const blobUrl = URL.createObjectURL(decryptedBlob);
+                                    if (attachmentMetadata.type.startsWith("image/")) {
+                                        previewContainer.innerHTML = `<img src="${blobUrl}" alt="${attachmentMetadata.name}" class="img-fluid rounded" style="max-height: 450px; max-width: 100%; border: 1px solid var(--border); box-shadow: var(--shadow-sm); object-fit: contain;" />`;
+                                    } else {
+                                        previewContainer.innerHTML = `<video src="${blobUrl}" controls class="img-fluid rounded" style="max-height: 450px; max-width: 100%; border: 1px solid var(--border); box-shadow: var(--shadow-sm);" />`;
+                                    }
+                                }
+                            } catch (err) {
+                                console.error("Preview load failed", err);
+                                previewContainer.style.display = "none";
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (err) {
+            console.error("E2E message decryption error", err);
+            document.getElementById("readSubject").textContent = "[Chyba dešifrování]";
+            document.getElementById("readBodyText").textContent = "Zprávu se nepodařilo dešifrovat.";
+        }
+    });
+
+    if (sessionStorage.getItem("decryptedPrivateKey")) {
+        document.dispatchEvent(new CustomEvent("e2e-ready"));
+    }
+});
+</script>
+}

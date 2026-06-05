@@ -26,6 +26,12 @@ namespace sum.Models
         [Display(Name = "Role")]
         public string Role { get; set; } = "Student";
 
+        [Display(Name = "Veřejný klíč (E2E)")]
+        public string? PublicKey { get; set; }
+
+        [Display(Name = "Šifrovaný soukromý klíč (E2E)")]
+        public string? EncryptedPrivateKey { get; set; }
+
         [Display(Name = "Datum registrace")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }

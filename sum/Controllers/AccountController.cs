@@ -153,6 +153,9 @@ namespace sum.Controllers
             // Derive username from email (part before @)
             var username = model.Email.Split('@')[0];
 
+            var publicKey = Request.Form["PublicKey"].ToString();
+            var encryptedPrivateKey = Request.Form["EncryptedPrivateKey"].ToString();
+
             var user = new User
             {
                 Username = username,
@@ -160,6 +163,8 @@ namespace sum.Controllers
                 FullName = null,
                 PasswordHash = HashPassword(model.Password),
                 Role = "Student",
+                PublicKey = string.IsNullOrEmpty(publicKey) ? null : publicKey,
+                EncryptedPrivateKey = string.IsNullOrEmpty(encryptedPrivateKey) ? null : encryptedPrivateKey,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -333,6 +338,49 @@ namespace sum.Controllers
                 return RedirectToAction("Login");
 
             return View(user);
+        }
+
+        // GET: /Account/GetPublicKey?userId=5
+        [HttpGet]
+        public async Task<IActionResult> GetPublicKey(int userId)
+        {
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null) return NotFound();
+            return Json(new { publicKey = user.PublicKey });
+        }
+
+        // GET: /Account/GetKeys
+        [HttpGet]
+        public async Task<IActionResult> GetKeys()
+        {
+            var claim = User.FindFirst("UserId")?.Value;
+            if (!int.TryParse(claim, out var currentUserId)) return Unauthorized();
+
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == currentUserId);
+            if (user == null) return NotFound();
+
+            return Json(new { 
+                hasKeys = !string.IsNullOrEmpty(user.PublicKey), 
+                encryptedPrivateKey = user.EncryptedPrivateKey 
+            });
+        }
+
+        // POST: /Account/SaveKeys
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SaveKeys(string publicKey, string encryptedPrivateKey)
+        {
+            var claim = User.FindFirst("UserId")?.Value;
+            if (!int.TryParse(claim, out var currentUserId)) return Unauthorized();
+
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == currentUserId);
+            if (user == null) return NotFound();
+
+            user.PublicKey = publicKey;
+            user.EncryptedPrivateKey = encryptedPrivateKey;
+            await _db.SaveChangesAsync();
+
+            return Json(new { success = true });
         }
 
         // GET: /Account/AccessDenied

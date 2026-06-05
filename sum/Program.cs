@@ -171,10 +171,29 @@ using (var scope = app.Services.CreateScope())
                 await cmd.ExecuteNonQueryAsync();
             }
 
+            // Alter Users to add E2E columns
+            try
+            {
+                using var alterCmd = conn.CreateCommand();
+                alterCmd.CommandText = "ALTER TABLE Users ADD COLUMN PublicKey TEXT NULL;";
+                await alterCmd.ExecuteNonQueryAsync();
+            }
+            catch { }
+            try
+            {
+                using var alterCmd = conn.CreateCommand();
+                alterCmd.CommandText = "ALTER TABLE Users ADD COLUMN EncryptedPrivateKey TEXT NULL;";
+                await alterCmd.ExecuteNonQueryAsync();
+            }
+            catch { }
+
             if (!wasOpen) await conn.CloseAsync();
         }
         else if (db.Database.IsNpgsql())
         {
+            await db.Database.ExecuteSqlRawAsync("ALTER TABLE \"Users\" ADD COLUMN IF NOT EXISTS \"PublicKey\" text NULL;");
+            await db.Database.ExecuteSqlRawAsync("ALTER TABLE \"Users\" ADD COLUMN IF NOT EXISTS \"EncryptedPrivateKey\" text NULL;");
+
             await db.Database.ExecuteSqlRawAsync("ALTER TABLE \"Messages\" ADD COLUMN IF NOT EXISTS \"AttachmentData\" bytea;");
             await db.Database.ExecuteSqlRawAsync("ALTER TABLE \"Messages\" ADD COLUMN IF NOT EXISTS \"SecureId\" uuid NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000';");
 

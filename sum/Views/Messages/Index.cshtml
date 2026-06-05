@@ -108,8 +108,11 @@
                     {
                         var isSentByMe = msg.SenderId == currentUserId;
                         var isUnreadIncoming = !msg.IsRead && !isSentByMe;
+                        var isE2e = msg.Body != null && msg.Body.StartsWith("__E2E__:");
 
-                        <div class="message-row @(isUnreadIncoming ? "unread" : "")" id="msg-@msg.Id">
+                        <div class="message-row @(isUnreadIncoming ? "unread" : "") @(isE2e ? "msg-row-e2e" : "")" 
+                             id="msg-@msg.Id"
+                             @(isE2e ? Html.Raw($"data-e2e-payload=\"{msg.Body}\" data-is-sender=\"{(isSentByMe ? "true" : "false")}\"") : null)>
                             <a asp-action="Read" asp-route-id="@msg.SecureId" class="msg-row-link">
                                 <div class="msg-avatar @(isSentByMe ? "sent-avatar" : "")">
                                     <i class="fas fa-user-circle"></i>
@@ -134,14 +137,16 @@
                                         {
                                             <span class="unread-dot" style="margin-right: 0.25rem;"></span>
                                         }
-                                        <span class="subject-text">@msg.Subject</span>
+                                        <span class="subject-text">@(isE2e ? "Dešifrování..." : msg.Subject)</span>
                                     </div>
                                     <div class="msg-preview">
                                         @if (msg.AttachmentFileName != null)
                                         {
                                             <i class="fas fa-paperclip msg-attachment-icon"></i>
                                         }
-                                        @(string.IsNullOrEmpty(msg.Body) ? "Žádný obsah" : (msg.Body.Length > 100 ? msg.Body.Substring(0, 100) + "…" : msg.Body))
+                                        <span class="msg-preview-text">
+                                            @(isE2e ? "Dešifrování..." : (string.IsNullOrEmpty(msg.Body) ? "Žádný obsah" : (msg.Body.Length > 100 ? msg.Body.Substring(0, 100) + "…" : msg.Body)))
+                                        </span>
                                     </div>
                                 </div>
                             </a>
@@ -271,6 +276,48 @@
             bulkDeletePermBtn.addEventListener("click", function () {
                 submitBulkAction('@Url.Action("BulkDeletePermanently", "Messages")', "Opravdu chcete všechny vybrané zprávy trvale smazat? Tato akce je nevratná.");
             });
+        }
+
+        // Decrypt E2E message rows when E2E is ready
+        document.addEventListener("e2e-ready", async function () {
+            const privateKeySession = sessionStorage.getItem("decryptedPrivateKey");
+            if (!privateKeySession) return;
+            
+            try {
+                const privateKeyObj = await E2E.importPrivateKeyFromSession(privateKeySession);
+                const e2eRows = document.querySelectorAll(".msg-row-e2e");
+                
+                for (const row of e2eRows) {
+                    const payload = row.getAttribute("data-e2e-payload");
+                    const isSender = row.getAttribute("data-is-sender") === "true";
+                    
+                    try {
+                        const decrypted = await E2E.decryptMessage(payload, privateKeyObj, isSender);
+                        if (decrypted) {
+                            const subjectEl = row.querySelector(".subject-text");
+                            const previewEl = row.querySelector(".msg-preview-text");
+                            if (subjectEl) subjectEl.textContent = decrypted.subject;
+                            if (previewEl) {
+                                const snippet = decrypted.body.length > 100 ? decrypted.body.substring(0, 100) + "…" : decrypted.body;
+                                previewEl.textContent = decrypted.body ? snippet : "Bez obsahu";
+                            }
+                        }
+                    } catch (err) {
+                        console.error("Failed to decrypt row message", err);
+                        const subjectEl = row.querySelector(".subject-text");
+                        if (subjectEl) subjectEl.textContent = "[Chyba dešifrování]";
+                        const previewEl = row.querySelector(".msg-preview-text");
+                        if (previewEl) previewEl.textContent = "Nelze dešifrovat zprávu.";
+                    }
+                }
+            } catch (err) {
+                console.error("E2E list decryption setup error", err);
+            }
+        });
+
+        // Trigger manual check in case E2E initialized before event listener was registered
+        if (sessionStorage.getItem("decryptedPrivateKey")) {
+            document.dispatchEvent(new CustomEvent("e2e-ready"));
         }
     });
 </script>

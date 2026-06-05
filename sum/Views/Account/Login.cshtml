@@ -58,4 +58,45 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const form = document.getElementById("loginForm");
+            if (form) {
+                form.addEventListener("submit", async function(e) {
+                    e.preventDefault();
+                    
+                    if (typeof $ !== 'undefined' && typeof $.fn.valid === 'function') {
+                        if (!$(this).valid()) {
+                            return;
+                        }
+                    }
+                    
+                    const email = document.getElementById("loginEmail").value;
+                    const password = document.getElementById("loginPassword").value;
+                    const btn = document.getElementById("loginSubmitBtn");
+                    
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Přihlašování...';
+                    
+                    try {
+                        const aesKey = await E2E.deriveKey(password, email);
+                        const rawKey = await window.crypto.subtle.exportKey("raw", aesKey);
+                        
+                        let binary = '';
+                        const bytes = new Uint8Array(rawKey);
+                        for (let i = 0; i < bytes.byteLength; i++) {
+                            binary += String.fromCharCode(bytes[i]);
+                        }
+                        const base64Key = window.btoa(binary);
+                        
+                        sessionStorage.setItem("derivedAesKey", base64Key);
+                    } catch (err) {
+                        console.error("E2E Login Key Derivation Error", err);
+                    }
+                    
+                    form.submit();
+                });
+            }
+        });
+    </script>
 }

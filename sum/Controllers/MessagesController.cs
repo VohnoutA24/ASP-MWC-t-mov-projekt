@@ -40,8 +40,11 @@ namespace sum.Controllers
 
             foreach (var m in messages)
             {
-                m.Subject = EncryptionHelper.Decrypt(m.Subject);
-                m.Body = EncryptionHelper.Decrypt(m.Body);
+                if (m.Body == null || !m.Body.StartsWith("__E2E__:"))
+                {
+                    m.Subject = EncryptionHelper.Decrypt(m.Subject);
+                    m.Body = EncryptionHelper.Decrypt(m.Body);
+                }
             }
 
             ViewBag.ActiveTab = "inbox";
@@ -64,8 +67,11 @@ namespace sum.Controllers
 
             foreach (var m in messages)
             {
-                m.Subject = EncryptionHelper.Decrypt(m.Subject);
-                m.Body = EncryptionHelper.Decrypt(m.Body);
+                if (m.Body == null || !m.Body.StartsWith("__E2E__:"))
+                {
+                    m.Subject = EncryptionHelper.Decrypt(m.Subject);
+                    m.Body = EncryptionHelper.Decrypt(m.Body);
+                }
             }
 
             // For unread messages count in sidebar
@@ -107,8 +113,9 @@ namespace sum.Controllers
 
                 if (original != null)
                 {
-                    var decryptedSubject = EncryptionHelper.Decrypt(original.Subject);
-                    var decryptedBody = EncryptionHelper.Decrypt(original.Body);
+                    bool isOriginalE2e = original.Body != null && original.Body.StartsWith("__E2E__:");
+                    var decryptedSubject = isOriginalE2e ? "[Zašifrovaná zpráva]" : EncryptionHelper.Decrypt(original.Subject);
+                    var decryptedBody = isOriginalE2e ? "" : EncryptionHelper.Decrypt(original.Body);
 
                     model.RecipientId = original.SenderId == userId.Value
                         ? original.RecipientId
@@ -116,7 +123,7 @@ namespace sum.Controllers
                     model.Subject = decryptedSubject.StartsWith("Re: ")
                         ? decryptedSubject
                         : $"Re: {decryptedSubject}";
-                    model.Body = $"\n\n--- Původní zpráva ---\nOd: {original.Sender?.Email}\nDne: {original.SentAt:dd.MM.yyyy HH:mm}\n\n{decryptedBody}";
+                    model.Body = isOriginalE2e ? "" : $"\n\n--- Původní zpráva ---\nOd: {original.Sender?.Email}\nDne: {original.SentAt:dd.MM.yyyy HH:mm}\n\n{decryptedBody}";
                 }
             }
 
@@ -147,12 +154,13 @@ namespace sum.Controllers
                 return View(model);
             }
 
+            bool isE2e = model.Body != null && model.Body.StartsWith("__E2E__:");
             var message = new Message
             {
                 SenderId = userId.Value,
                 RecipientId = model.RecipientId,
-                Subject = EncryptionHelper.Encrypt(model.Subject),
-                Body = EncryptionHelper.Encrypt(model.Body),
+                Subject = isE2e ? model.Subject : EncryptionHelper.Encrypt(model.Subject),
+                Body = isE2e ? model.Body : EncryptionHelper.Encrypt(model.Body),
                 SentAt = DateTime.UtcNow,
                 IsRead = false
             };
@@ -210,8 +218,11 @@ namespace sum.Controllers
 
             if (message == null) return NotFound();
 
-            message.Subject = EncryptionHelper.Decrypt(message.Subject);
-            message.Body = EncryptionHelper.Decrypt(message.Body);
+            if (message.Body == null || !message.Body.StartsWith("__E2E__:"))
+            {
+                message.Subject = EncryptionHelper.Decrypt(message.Subject);
+                message.Body = EncryptionHelper.Decrypt(message.Body);
+            }
 
             // Mark as read if recipient is viewing
             if (message.RecipientId == userId.Value && !message.IsRead)
@@ -352,8 +363,11 @@ namespace sum.Controllers
 
             foreach (var m in messages)
             {
-                m.Subject = EncryptionHelper.Decrypt(m.Subject);
-                m.Body = EncryptionHelper.Decrypt(m.Body);
+                if (m.Body == null || !m.Body.StartsWith("__E2E__:"))
+                {
+                    m.Subject = EncryptionHelper.Decrypt(m.Subject);
+                    m.Body = EncryptionHelper.Decrypt(m.Body);
+                }
             }
 
             var inboxUnreadCount = await _db.Messages
