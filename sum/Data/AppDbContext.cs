@@ -11,6 +11,7 @@ namespace sum.Data
         public DbSet<Message> Messages { get; set; }
         public DbSet<Homework> Homeworks { get; set; }
         public DbSet<HomeworkCompletion> HomeworkCompletions { get; set; }
+        public DbSet<ChatMessage> ChatMessages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -63,6 +64,23 @@ namespace sum.Data
                     .WithMany()
                     .HasForeignKey(hc => hc.HomeworkId)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<ChatMessage>(entity =>
+            {
+                entity.HasOne(cm => cm.Sender)
+                    .WithMany()
+                    .HasForeignKey(cm => cm.SenderId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(cm => cm.Recipient)
+                    .WithMany()
+                    .HasForeignKey(cm => cm.RecipientId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasIndex(cm => cm.SenderId);
+                entity.HasIndex(cm => cm.RecipientId);
+                entity.HasIndex(cm => cm.SentAt);
             });
         }
     }

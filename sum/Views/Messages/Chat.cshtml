@@ -1,0 +1,492 @@
+@model List<sum.Models.User>
+@{
+    ViewData["Title"] = "Rychlý chat";
+    var users = ViewBag.Users as List<sum.Models.User> ?? new List<sum.Models.User>();
+    var unreadCount = (int)(ViewBag.UnreadCount ?? 0);
+    var currentUserId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
+}
+
+<div class="messages-page">
+    <div class="messages-header animate-in">
+        <h1><i class="fas fa-comments"></i> Školní chat</h1>
+        <p>Rychlá a bezpečná komunikace s žáky i učiteli</p>
+    </div>
+
+    <div class="messages-layout animate-in animate-delay-1">
+        <!-- Sidebar -->
+        <aside class="messages-sidebar">
+            <a asp-action="Compose" class="btn-compose" id="composeBtn">
+                <i class="fas fa-pen-to-square"></i> Nová zpráva
+            </a>
+            <nav class="messages-nav">
+                <a asp-action="Index" class="msg-nav-item" id="inboxLink">
+                    <i class="fas fa-inbox"></i>
+                    <span>Příchozí</span>
+                    @if (unreadCount > 0)
+                    {
+                        <span class="msg-badge">@unreadCount</span>
+                    }
+                </a>
+                <a asp-action="Sent" class="msg-nav-item" id="sentLink">
+                    <i class="fas fa-paper-plane"></i>
+                    <span>Odeslaná</span>
+                </a>
+                <a asp-action="Trash" class="msg-nav-item" id="trashLink">
+                    <i class="fas fa-trash-alt"></i>
+                    <span>Koš</span>
+                </a>
+                
+                <div class="msg-nav-divider"></div>
+                
+                <a asp-action="Chat" class="msg-nav-item active" id="chatLink">
+                    <i class="fas fa-comments"></i>
+                    <span>Chat</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Chat Area -->
+        <div class="messages-content">
+            <div class="chat-container">
+                <!-- Contacts Pane -->
+                <div class="chat-contacts-pane">
+                    <div class="chat-search-wrapper">
+                        <input type="text" id="chatSearchInput" class="chat-search-input" placeholder="Hledat kontakt..." />
+                    </div>
+                    <div class="chat-contacts-list" id="chatContactsList">
+                        @foreach (var user in users)
+                        {
+                            var roleText = user.Role == "Teacher" ? "Učitel" : "Žák";
+                            var displayName = user.FullName ?? user.Username;
+                            var initial = !string.IsNullOrEmpty(displayName) ? displayName[0].ToString().ToUpper() : "?";
+                            
+                            <button class="chat-contact-item" 
+                                    data-user-id="@user.Id" 
+                                    data-name="@displayName" 
+                                    data-email="@user.Email"
+                                    data-role="@roleText"
+                                    data-public-key="@user.PublicKey"
+                                    onclick="selectContact(this)">
+                                <div class="chat-contact-avatar">
+                                    <span>@initial</span>
+                                </div>
+                                <div class="chat-contact-info">
+                                    <div class="chat-contact-name">@displayName</div>
+                                    <div class="chat-contact-role">@roleText</div>
+                                    <div class="chat-contact-badge-wrapper">
+                                        @if (!string.IsNullOrEmpty(user.PublicKey))
+                                        {
+                                            <span class="chat-badge-e2e secure" title="Podporuje koncové šifrování"><i class="fas fa-lock"></i> E2E</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="chat-badge-e2e fallback" title="Kompatibilní (serverové šifrování)"><i class="fas fa-shield-halved"></i> Fallback</span>
+                                        }
+                                    </div>
+                                </div>
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                <!-- Chat Pane -->
+                <div class="chat-pane" id="chatPane">
+                    <div class="chat-placeholder" id="chatPlaceholder">
+                        <i class="fas fa-comments"></i>
+                        <h3>Vyberte kontakt pro zahájení chatu</h3>
+                        <p>Zvolte někoho ze seznamu vlevo a začněte si psát bezpečně.</p>
+                    </div>
+
+                    <!-- Active Chat Interface (hidden initially) -->
+                    <div id="activeChatInterface" style="display: none; flex-direction: column; height: 100%;">
+                        <div class="chat-header">
+                            <div class="chat-header-user">
+                                <div class="chat-contact-avatar" style="width: 32px; height: 32px; font-size: 1rem;" id="activeChatAvatar">
+                                    <span>?</span>
+                                </div>
+                                <div>
+                                    <span class="chat-header-name" id="activeChatName">Uživatel</span>
+                                    <span class="chat-header-role" id="activeChatRole">Žák</span>
+                                </div>
+                            </div>
+                            <div id="activeChatSecurityBadge">
+                                <!-- Dynamically populated security badge -->
+                            </div>
+                        </div>
+
+                        <div class="chat-messages-container" id="chatMessagesContainer">
+                            <!-- Messages loaded dynamically -->
+                        </div>
+
+                        <div class="chat-input-wrapper">
+                            <div class="chat-input-row">
+                                <textarea id="chatInputTextarea" class="chat-input-textarea" placeholder="Napište zprávu..." rows="1" maxlength="2000"></textarea>
+                                <button type="button" id="chatBtnSend" class="chat-btn-send" onclick="sendCurrentMessage()" disabled>
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                            <div class="chat-input-footer">
+                                <span>Tip: Enter odešle zprávu, Shift+Enter vytvoří nový řádek.</span>
+                                <span class="chat-char-counter" id="chatCharCounter">0 / 2000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Anti-forgery token container -->
+@Html.AntiForgeryToken()
+
+<!-- Image Zoom Modal Overlay -->
+<div class="chat-zoom-overlay" id="chatZoomOverlay" onclick="closeImageZoom()">
+    <div class="chat-zoom-card" onclick="event.stopPropagation();">
+        <div class="chat-zoom-body">
+            <img src="" class="chat-zoom-image" id="chatZoomImage" alt="Zvětšený náhled" />
+        </div>
+        <div class="chat-zoom-options">
+            <span class="chat-zoom-link-text" id="chatZoomLinkText">https://...</span>
+            <div class="chat-zoom-actions">
+                <a href="" target="_blank" class="btn-zoom-action open-link" id="chatZoomOpenLinkBtn">
+                    <i class="fas fa-external-link-alt"></i> Otevřít odkaz
+                </a>
+                <button type="button" class="btn-zoom-action close-modal" onclick="closeImageZoom()">
+                    <i class="fas fa-times"></i> Zavřít
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    let activeContactId = null;
+    let activePublicKey = null;
+    let pollInterval = null;
+    let lastMessageCount = 0;
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const searchInput = document.getElementById("chatSearchInput");
+        const contactsList = document.getElementById("chatContactsList");
+        const textarea = document.getElementById("chatInputTextarea");
+        const sendBtn = document.getElementById("chatBtnSend");
+        const charCounter = document.getElementById("chatCharCounter");
+
+        // Contacts list search filter
+        if (searchInput) {
+            searchInput.addEventListener("input", function () {
+                const query = searchInput.value.toLowerCase().trim();
+                const items = contactsList.querySelectorAll(".chat-contact-item");
+                items.forEach(item => {
+                    const name = item.getAttribute("data-name").toLowerCase();
+                    const email = item.getAttribute("data-email").toLowerCase();
+                    if (name.includes(query) || email.includes(query)) {
+                        item.style.display = "flex";
+                    } else {
+                        item.style.display = "none";
+                    }
+                });
+            });
+        }
+
+        // Textarea height auto-adjust and character count limit
+        if (textarea) {
+            textarea.addEventListener("input", function () {
+                textarea.style.height = "auto";
+                textarea.style.height = (textarea.scrollHeight) + "px";
+
+                const len = textarea.value.length;
+                charCounter.textContent = `${len} / 2000`;
+                if (len >= 1800) {
+                    charCounter.classList.add("warning");
+                } else {
+                    charCounter.classList.remove("warning");
+                }
+
+                sendBtn.disabled = len === 0;
+            });
+
+            // Handle Enter key for sending
+            textarea.addEventListener("keydown", function (e) {
+                if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    if (textarea.value.trim().length > 0) {
+                        sendCurrentMessage();
+                    }
+                }
+            });
+        }
+    });
+
+    async function selectContact(element) {
+        // Toggle active class in contact list
+        document.querySelectorAll(".chat-contact-item").forEach(item => item.classList.remove("active"));
+        element.classList.add("active");
+
+        activeContactId = element.getAttribute("data-user-id");
+        activePublicKey = element.getAttribute("data-public-key");
+        
+        const name = element.getAttribute("data-name");
+        const role = element.getAttribute("data-role");
+
+        // Setup Header details
+        document.getElementById("activeChatName").textContent = name;
+        document.getElementById("activeChatRole").textContent = role;
+        document.getElementById("activeChatAvatar").querySelector("span").textContent = name[0].toUpperCase();
+
+        const badgeContainer = document.getElementById("activeChatSecurityBadge");
+        if (activePublicKey && activePublicKey !== "null" && activePublicKey !== "") {
+            badgeContainer.innerHTML = '<span class="chat-badge-e2e secure"><i class="fas fa-lock"></i> Koncové šifrování aktivní</span>';
+        } else {
+            badgeContainer.innerHTML = '<span class="chat-badge-e2e fallback"><i class="fas fa-shield-halved"></i> Šifrováno serverem</span>';
+            activePublicKey = null; // Ensure it's treated as null for encryption
+        }
+
+        // Display Chat UI
+        document.getElementById("chatPlaceholder").style.display = "none";
+        document.getElementById("activeChatInterface").style.display = "flex";
+
+        // Reset input state
+        const textarea = document.getElementById("chatInputTextarea");
+        textarea.value = "";
+        textarea.style.height = "44px";
+        document.getElementById("chatCharCounter").textContent = "0 / 2000";
+        document.getElementById("chatBtnSend").disabled = true;
+
+        lastMessageCount = 0;
+        await loadMessages();
+
+        // Start Live Updates Polling
+        if (pollInterval) clearInterval(pollInterval);
+        pollInterval = setInterval(loadMessages, 5000);
+    }
+
+    async function loadMessages() {
+        if (!activeContactId) return;
+
+        try {
+            const response = await fetch(`/Messages/GetChatMessages?contactId=${activeContactId}`);
+            if (!response.ok) return;
+
+            const messages = await response.json();
+            
+            // Optimization: Only re-render if the count has changed
+            if (messages.length === lastMessageCount) return;
+
+            const container = document.getElementById("chatMessagesContainer");
+            container.innerHTML = "";
+
+            const privateKeySession = sessionStorage.getItem("decryptedPrivateKey");
+            let privateKeyObj = null;
+
+            if (privateKeySession) {
+                try {
+                    privateKeyObj = await E2E.importPrivateKeyFromSession(privateKeySession);
+                } catch (e) {
+                    console.error("Failed to import cached E2E private key", e);
+                }
+            }
+
+            const currentUserId = @currentUserId;
+
+            for (const msg of messages) {
+                const isSentByMe = msg.senderId === currentUserId;
+                const bubble = document.createElement("div");
+                bubble.className = `chat-message-bubble ${isSentByMe ? 'outgoing' : 'incoming'}`;
+
+                let decryptedText = msg.body;
+
+                if (msg.isE2e) {
+                    if (privateKeyObj) {
+                        try {
+                            const decrypted = await E2E.decryptMessage(msg.body, privateKeyObj, isSentByMe);
+                            decryptedText = decrypted ? decrypted.body : "[Dešifrování selhalo]";
+                        } catch (err) {
+                            console.error("E2E Chat Decryption error", err);
+                            decryptedText = "[Chyba dešifrování - ověřte klíče]";
+                        }
+                    } else {
+                        decryptedText = "[Šifrovaná zpráva - odemkněte schránku]";
+                    }
+                }
+
+                // Parse URLs and format images
+                const formattedContent = parseMessageContent(decryptedText);
+
+                bubble.innerHTML = `
+                    <div class="chat-message-text">${formattedContent}</div>
+                    <div class="chat-message-meta">
+                        <span>${msg.sentAt}</span>
+                        ${msg.isE2e ? '<i class="fas fa-lock" title="E2E šifrováno"></i>' : '<i class="fas fa-shield-halved" title="Serverově šifrováno"></i>'}
+                    </div>
+                `;
+
+                container.appendChild(bubble);
+            }
+
+            lastMessageCount = messages.length;
+            
+            // Scroll to bottom
+            container.scrollTop = container.scrollHeight;
+
+        } catch (error) {
+            console.error("Failed to load chat messages", error);
+        }
+    }
+
+    async function sendCurrentMessage() {
+        const textarea = document.getElementById("chatInputTextarea");
+        const text = textarea.value.trim();
+        if (!text || !activeContactId) return;
+
+        // Disable input during send
+        textarea.disabled = true;
+        const sendBtn = document.getElementById("chatBtnSend");
+        sendBtn.disabled = true;
+
+        try {
+            let finalBody = text;
+
+            // Encrypt if recipient supports E2E
+            if (activePublicKey && activePublicKey !== "null" && activePublicKey !== "") {
+                const privateKeySession = sessionStorage.getItem("decryptedPrivateKey");
+                if (!privateKeySession) {
+                    alert("Vaše E2E schránka je uzamčena. Odemkněte prosím poštu v doručené poště.");
+                    textarea.disabled = false;
+                    sendBtn.disabled = false;
+                    return;
+                }
+
+                const myPubKeyBase64 = await getMyPublicKey();
+                if (!myPubKeyBase64) {
+                    alert("Nepodařilo se načíst váš veřejný šifrovací klíč.");
+                    textarea.disabled = false;
+                    sendBtn.disabled = false;
+                    return;
+                }
+
+                // Import public keys
+                const recipientPubKeyObj = await E2E.importPublicKey(activePublicKey);
+                const senderPubKeyObj = await E2E.importPublicKey(myPubKeyBase64);
+
+                // Encrypt (use dummy subject)
+                finalBody = await E2E.encryptMessage("", text, recipientPubKeyObj, senderPubKeyObj);
+            }
+
+            const verificationToken = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+            const formData = new FormData();
+            formData.append("contactId", activeContactId);
+            formData.append("body", finalBody);
+            if (verificationToken) {
+                formData.append("__RequestVerificationToken", verificationToken);
+            }
+
+            const response = await fetch('/Messages/SendChatMessage', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                textarea.value = "";
+                textarea.style.height = "44px";
+                document.getElementById("chatCharCounter").textContent = "0 / 2000";
+                await loadMessages();
+            } else {
+                alert("Nepodařilo se odeslat zprávu.");
+            }
+
+        } catch (err) {
+            console.error("Error sending chat message", err);
+            alert("Během odesílání došlo k chybě.");
+        } finally {
+            textarea.disabled = false;
+            textarea.focus();
+        }
+    }
+
+    async function getMyPublicKey() {
+        try {
+            const res = await fetch('/Account/GetKeys');
+            if (res.ok) {
+                const data = await res.json();
+                if (data.hasKeys) {
+                    // Quick way to fetch key
+                    const keyRes = await fetch(`/Account/GetPublicKey?userId=${@currentUserId}`);
+                    if (keyRes.ok) {
+                        const keyData = await keyRes.json();
+                        return keyData.publicKey;
+                    }
+                }
+            }
+        } catch (e) {
+            console.error(e);
+        }
+        return null;
+    }
+
+    // Helper: Escapes text and wraps url links / embeds images
+    function parseMessageContent(text) {
+        if (!text) return "";
+
+        // Escape HTML
+        let escaped = text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+
+        // URL Regex matcher
+        const urlRegex = /(https?:\/\/[^\s$.?#].[^\s]*)/gi;
+
+        return escaped.replace(urlRegex, function (url) {
+            // Check if it's an image link (ends with extension, ignore query parameters)
+            const cleanUrl = url.split('?')[0].split('#')[0];
+            const isImage = cleanUrl.match(/\.(jpeg|jpg|gif|png|webp|svg)$/i);
+            
+            let html = `<a href="${url}" target="_blank" onclick="event.stopPropagation();">${url}</a>`;
+            
+            if (isImage) {
+                html += `
+                    <div class="chat-image-preview-wrapper" onclick="openImageZoom('${url}')">
+                        <img src="${url}" class="chat-inline-image" alt="Odkazovaný obrázek" onerror="this.parentNode.style.display='none';" />
+                    </div>
+                `;
+            }
+            return html;
+        });
+    }
+
+    // Modal view actions
+    function openImageZoom(url) {
+        const overlay = document.getElementById("chatZoomOverlay");
+        const img = document.getElementById("chatZoomImage");
+        const linkText = document.getElementById("chatZoomLinkText");
+        const openBtn = document.getElementById("chatZoomOpenLinkBtn");
+
+        img.src = url;
+        linkText.textContent = url;
+        openBtn.href = url;
+
+        overlay.classList.add("active");
+    }
+
+    function closeImageZoom() {
+        const overlay = document.getElementById("chatZoomOverlay");
+        overlay.classList.remove("active");
+    }
+
+    // Listen for Escape key to close the zoom modal
+    document.addEventListener("keydown", function(e) {
+        if (e.key === "Escape") {
+            closeImageZoom();
+        }
+    });
+
+    // Cleanup interval on page unload
+    window.addEventListener("beforeunload", function() {
+        if (pollInterval) clearInterval(pollInterval);
+    });
+</script>
+}

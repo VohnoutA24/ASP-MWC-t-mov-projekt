@@ -35,6 +35,11 @@
                     <i class="fas fa-trash-alt"></i>
                     <span>Koš</span>
                 </a>
+                <div class="msg-nav-divider"></div>
+                <a asp-action="Chat" class="msg-nav-item @(activeTab == "chat" ? "active" : "")" id="chatLink">
+                    <i class="fas fa-comments"></i>
+                    <span>Chat</span>
+                </a>
             </nav>
         </aside>
 

@@ -686,5 +686,116 @@ namespace sum.Controllers
             TempData["SuccessMessage"] = "Vybrané zprávy byly trvale smazány.";
             return RedirectToAction("Trash");
         }
+
+        // GET: /Messages/Chat
+        [HttpGet]
+        public async Task<IActionResult> Chat()
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null) return RedirectToAction("Login", "Account");
+
+            var users = await _db.Users
+                .Where(u => u.Id != userId.Value)
+                .OrderBy(u => u.FullName ?? u.Email)
+                .ToListAsync();
+
+            ViewBag.Users = users;
+
+            // For unread messages count in sidebar
+            var inboxUnreadCount = await _db.Messages
+                .CountAsync(m => m.RecipientId == userId.Value && !m.IsRead && !m.RecipientDeleted);
+            ViewBag.UnreadCount = inboxUnreadCount;
+
+            ViewBag.ActiveTab = "chat";
+            return View();
+        }
+
+        // GET: /Messages/GetChatMessages
+        [HttpGet]
+        public async Task<IActionResult> GetChatMessages(int contactId)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null) return Unauthorized();
+
+            var messages = await _db.ChatMessages
+                .Where(m => (m.SenderId == userId.Value && m.RecipientId == contactId) ||
+                            (m.SenderId == contactId && m.RecipientId == userId.Value))
+                .OrderBy(m => m.SentAt)
+                .ToListAsync();
+
+            var result = messages.Select(m => {
+                string payload = m.EncryptedPayload;
+                bool isE2e = payload.StartsWith("__E2E__:");
+                string bodyDecrypted = payload;
+                if (!isE2e)
+                {
+                    bodyDecrypted = EncryptionHelper.Decrypt(payload);
+                }
+
+                return new {
+                    id = m.Id,
+                    senderId = m.SenderId,
+                    recipientId = m.RecipientId,
+                    body = bodyDecrypted,
+                    isE2e = isE2e,
+                    sentAt = m.SentAt.ToCzechTime().ToString("dd.MM.yyyy HH:mm:ss")
+                };
+            });
+
+            return Json(result);
+        }
+
+        // POST: /Messages/SendChatMessage
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SendChatMessage(int contactId, string body)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null) return Unauthorized();
+
+            if (string.IsNullOrWhiteSpace(body))
+            {
+                return BadRequest("Zpráva nesmí být prázdná.");
+            }
+
+            if (body.Length > 2000 && !body.StartsWith("__E2E__:"))
+            {
+                return BadRequest("Zpráva překročila limit 2000 znaků.");
+            }
+
+            var recipient = await _db.Users.FindAsync(contactId);
+            if (recipient == null)
+            {
+                return NotFound("Příjemce nebyl nalezen.");
+            }
+
+            string encryptedPayload;
+            if (body.StartsWith("__E2E__:"))
+            {
+                encryptedPayload = body;
+            }
+            else
+            {
+                // Fallback to server-side encryption
+                encryptedPayload = EncryptionHelper.Encrypt(body);
+            }
+
+            var chatMsg = new ChatMessage
+            {
+                SenderId = userId.Value,
+                RecipientId = contactId,
+                EncryptedPayload = encryptedPayload,
+                SentAt = DateTime.UtcNow
+            };
+
+            _db.ChatMessages.Add(chatMsg);
+            await _db.SaveChangesAsync();
+
+            return Json(new { 
+                success = true, 
+                id = chatMsg.Id,
+                sentAt = chatMsg.SentAt.ToCzechTime().ToString("dd.MM.yyyy HH:mm:ss")
+            });
+        }
     }
 }
