@@ -32,6 +32,9 @@ namespace sum.Models
         [Display(Name = "Šifrovaný soukromý klíč (E2E)")]
         public string? EncryptedPrivateKey { get; set; }
 
+        [Display(Name = "Profilový obrázek")]
+        public byte[]? ProfilePicture { get; set; }
+
         [Display(Name = "Datum registrace")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }

@@ -9,6 +9,10 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.DataProtection;
+using System.IO;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Formats.Webp;
 
 namespace sum.Controllers
 {
@@ -401,6 +405,104 @@ namespace sum.Controllers
         private static bool VerifyPassword(string password, string hash)
         {
             return HashPassword(password) == hash;
+        }
+
+        // GET: /Account/ProfilePicture?userId=5
+        [HttpGet]
+        public async Task<IActionResult> ProfilePicture(int userId)
+        {
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null || user.ProfilePicture == null)
+            {
+                return NotFound();
+            }
+            return File(user.ProfilePicture, "image/webp");
+        }
+
+        // POST: /Account/UploadProfilePicture
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UploadProfilePicture(IFormFile file)
+        {
+            if (User.Identity?.IsAuthenticated != true)
+                return RedirectToAction("Login");
+
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (user == null)
+                return RedirectToAction("Login");
+
+            if (file == null || file.Length == 0)
+            {
+                TempData["ErrorMessage"] = "Vyberte prosím soubor.";
+                return RedirectToAction("Profile");
+            }
+
+            // Validate file extension
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            var allowedExtensions = new[] { ".png", ".jpg", ".jpeg", ".webp" };
+            if (!allowedExtensions.Contains(extension))
+            {
+                TempData["ErrorMessage"] = "Povoleny jsou pouze obrázky ve formátu PNG, JPEG, JPG nebo WebP.";
+                return RedirectToAction("Profile");
+            }
+
+            try
+            {
+                using (var inputStream = file.OpenReadStream())
+                using (var image = Image.Load(inputStream))
+                {
+                    // Resize to max 200x200px maintaining aspect ratio
+                    int maxWidth = 200;
+                    int maxHeight = 200;
+                    image.Mutate(x => x.Resize(new ResizeOptions
+                    {
+                        Size = new Size(maxWidth, maxHeight),
+                        Mode = ResizeMode.Max
+                    }));
+
+                    // Save as WebP with 50% quality
+                    var encoder = new WebpEncoder
+                    {
+                        Quality = 50
+                    };
+
+                    using (var outputStream = new MemoryStream())
+                    {
+                        image.Save(outputStream, encoder);
+                        user.ProfilePicture = outputStream.ToArray();
+                    }
+                }
+
+                await _db.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Profilový obrázek byl úspěšně nahrán a uložen.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Při zpracování obrázku došlo k chybě: " + ex.Message;
+            }
+
+            return RedirectToAction("Profile");
+        }
+
+        // POST: /Account/DeleteProfilePicture
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteProfilePicture()
+        {
+            if (User.Identity?.IsAuthenticated != true)
+                return RedirectToAction("Login");
+
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (user == null)
+                return RedirectToAction("Login");
+
+            user.ProfilePicture = null;
+            await _db.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Profilový obrázek byl smazán.";
+            return RedirectToAction("Profile");
         }
     }
 }

@@ -4,11 +4,51 @@
 }
 
 <div class="profile-page">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert-success animate-in" style="max-width: 700px; margin: 0 auto 1.5rem;">
+            <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert-danger animate-in" style="max-width: 700px; margin: 0 auto 1.5rem;">
+            <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+        </div>
+    }
+
     <div class="profile-card animate-in">
         <div class="profile-header">
-            <div class="profile-avatar">
-                <i class="fas fa-user-graduate"></i>
+            <div class="profile-avatar-container">
+                <div class="profile-avatar">
+                    @if (Model.ProfilePicture != null)
+                    {
+                        <img src="@Url.Action("ProfilePicture", "Account", new { userId = Model.Id })" alt="Profilový obrázek" class="profile-avatar-img" />
+                    }
+                    else
+                    {
+                        <i class="fas @(Model.Role == "Teacher" ? "fa-chalkboard-teacher" : "fa-user-graduate")"></i>
+                    }
+                    <button type="button" class="avatar-edit-overlay" onclick="document.getElementById('profilePictureInput').click()" title="Změnit profilový obrázek">
+                        <i class="fas fa-camera"></i>
+                    </button>
+                </div>
+                
+                @if (Model.ProfilePicture != null)
+                {
+                    <form asp-controller="Account" asp-action="DeleteProfilePicture" method="post" style="margin-top: 1rem; position: relative; z-index: 2;">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn-delete-avatar" title="Smazat profilový obrázek">
+                            <i class="fas fa-trash-alt"></i> Smazat obrázek
+                        </button>
+                    </form>
+                }
             </div>
+            
+            <form id="profilePictureForm" asp-controller="Account" asp-action="UploadProfilePicture" method="post" enctype="multipart/form-data" style="display: none;">
+                @Html.AntiForgeryToken()
+                <input type="file" id="profilePictureInput" name="file" accept=".png,.jpg,.jpeg,.webp" onchange="document.getElementById('profilePictureForm').submit()" />
+            </form>
         </div>
         <div class="profile-body">
             <div class="profile-name">

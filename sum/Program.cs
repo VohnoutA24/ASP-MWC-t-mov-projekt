@@ -186,6 +186,13 @@ using (var scope = app.Services.CreateScope())
                 await alterCmd.ExecuteNonQueryAsync();
             }
             catch { }
+            try
+            {
+                using var alterCmd = conn.CreateCommand();
+                alterCmd.CommandText = "ALTER TABLE Users ADD COLUMN ProfilePicture BLOB NULL;";
+                await alterCmd.ExecuteNonQueryAsync();
+            }
+            catch { }
 
             // Create ChatMessages table if it does not exist
             using (var cmd = conn.CreateCommand())
@@ -232,6 +239,7 @@ using (var scope = app.Services.CreateScope())
         {
             await db.Database.ExecuteSqlRawAsync("ALTER TABLE \"Users\" ADD COLUMN IF NOT EXISTS \"PublicKey\" text NULL;");
             await db.Database.ExecuteSqlRawAsync("ALTER TABLE \"Users\" ADD COLUMN IF NOT EXISTS \"EncryptedPrivateKey\" text NULL;");
+            await db.Database.ExecuteSqlRawAsync("ALTER TABLE \"Users\" ADD COLUMN IF NOT EXISTS \"ProfilePicture\" bytea NULL;");
 
             await db.Database.ExecuteSqlRawAsync("ALTER TABLE \"Messages\" ADD COLUMN IF NOT EXISTS \"AttachmentData\" bytea;");
             await db.Database.ExecuteSqlRawAsync("ALTER TABLE \"Messages\" ADD COLUMN IF NOT EXISTS \"SecureId\" uuid NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000';");
