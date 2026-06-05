@@ -122,7 +122,9 @@
 
                         <div class="message-row @(isUnreadIncoming ? "unread" : "") @(isE2e ? "msg-row-e2e" : "")" 
                              id="msg-@msg.Id"
-                             @(isE2e ? Html.Raw($"data-e2e-payload=\"{msg.Body}\" data-is-sender=\"{(isSentByMe ? "true" : "false")}\"") : null)>
+                             data-is-e2e="@(isE2e ? "true" : "false")"
+                             data-e2e-payload="@(isE2e ? msg.Body : "")"
+                             data-is-sender="@(isSentByMe ? "true" : "false")">
                             <a asp-action="Read" asp-route-id="@msg.SecureId" class="msg-row-link">
                                 <div class="msg-avatar @(isSentByMe ? "sent-avatar" : "")">
                                     <i class="fas fa-user-circle"></i>
