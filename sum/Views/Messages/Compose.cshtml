@@ -45,6 +45,8 @@
                             }
                         </select>
                     </div>
+                    <!-- E2E Status Indicator -->
+                    <div id="e2eStatusIndicator" style="margin-top: 0.5rem; display: none;"></div>
                     <span asp-validation-for="RecipientId" class="field-validation-error"></span>
                 </div>
 
@@ -182,6 +184,87 @@ document.addEventListener('DOMContentLoaded', function() {
     // E2E encryption and submission
     const composeForm = document.getElementById('composeForm');
     const sendBtn = document.getElementById('sendBtn');
+    const recipientSelect = document.getElementById('recipientSelect');
+    const e2eIndicator = document.getElementById('e2eStatusIndicator');
+
+    let recipientE2EKey = null;
+    let senderE2EKey = null;
+
+    async function checkE2EStatus() {
+        const recipientId = recipientSelect.value;
+        if (!recipientId) {
+            e2eIndicator.style.display = 'none';
+            recipientE2EKey = null;
+            return;
+        }
+
+        e2eIndicator.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ověřování zabezpečení...';
+        e2eIndicator.style.display = 'block';
+        e2eIndicator.className = '';
+        e2eIndicator.style.color = 'var(--text-secondary)';
+
+        try {
+            const [recipKeyRes, senderKeyRes] = await Promise.all([
+                fetch(`/Account/GetPublicKey?userId=${recipientId}`),
+                fetch(`/Account/GetPublicKey?userId=${window.currentUserId}`)
+            ]);
+
+            if (!recipKeyRes.ok || !senderKeyRes.ok) {
+                throw new Error();
+            }
+
+            const recipKeyData = await recipKeyRes.json();
+            const senderKeyData = await senderKeyRes.json();
+
+            recipientE2EKey = recipKeyData.publicKey || null;
+            senderE2EKey = senderKeyData.publicKey || null;
+
+            if (recipientE2EKey && senderE2EKey) {
+                // Check if key changed compared to localStorage
+                const oldKey = localStorage.getItem("pubkey_" + recipientId);
+                if (oldKey && oldKey !== recipientE2EKey) {
+                    e2eIndicator.innerHTML = `
+                        <div class="alert alert-warning" style="margin: 0; padding: 0.65rem 0.85rem; font-size: 0.85rem; border-radius: var(--radius-sm); border-color: #fef08a; background: #fef9c3; color: #854d0e; display: flex; align-items: flex-start; gap: 0.5rem; line-height: 1.4;">
+                            <i class="fas fa-triangle-exclamation" style="margin-top: 0.15rem;"></i>
+                            <div>
+                                <strong>Upozornění na změnu klíče:</strong> Bezpečnostní kód s tímto příjemcem se změnil. Příjemce si mohl vygenerovat nový klíč.
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    e2eIndicator.innerHTML = `
+                        <div style="font-size: 0.85rem; color: #10b981; display: flex; align-items: center; gap: 0.4rem; font-weight: 600;">
+                            <i class="fas fa-lock"></i> Koncové šifrování (E2E) aktivní
+                        </div>
+                    `;
+                }
+            } else if (!recipientE2EKey) {
+                e2eIndicator.innerHTML = `
+                    <div style="font-size: 0.85rem; color: #64748b; display: flex; align-items: center; gap: 0.4rem; font-weight: 500;">
+                        <i class="fas fa-shield-halved"></i> Serverové zabezpečení (Příjemce nemá aktivované E2E)
+                    </div>
+                `;
+            } else {
+                e2eIndicator.innerHTML = `
+                    <div style="font-size: 0.85rem; color: #64748b; display: flex; align-items: center; gap: 0.4rem; font-weight: 500;">
+                        <i class="fas fa-shield-halved"></i> Serverové zabezpečení (Nemáte aktivované E2E)
+                    </div>
+                `;
+            }
+        } catch (err) {
+            e2eIndicator.style.display = 'none';
+            recipientE2EKey = null;
+        }
+    }
+
+    if (recipientSelect) {
+        recipientSelect.addEventListener('change', checkE2EStatus);
+        // Run once on load for replies
+        if (recipientSelect.value) {
+            checkE2EStatus();
+        }
+    }
+
     if (composeForm && sendBtn) {
         composeForm.addEventListener('submit', async function (e) {
             e.preventDefault();
@@ -194,7 +277,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
                 
-                const recipientSelect = document.getElementById('recipientSelect');
                 const recipientId = recipientSelect.value;
                 if (!recipientId) {
                     alert("Vyberte příjemce.");
@@ -202,46 +284,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 sendBtn.disabled = true;
-                sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Šifrování zprávy...';
+                sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Odesílám...';
                 sendBtn.style.opacity = '0.75';
 
                 try {
-                    // 1. Fetch public keys
-                    const [recipKeyRes, senderKeyRes] = await Promise.all([
-                        fetch(`/Account/GetPublicKey?userId=${recipientId}`),
-                        fetch(`/Account/GetPublicKey?userId=${window.currentUserId}`)
-                    ]);
-
-                    if (!recipKeyRes.ok || !senderKeyRes.ok) {
-                        throw new Error("Nepodařilo se načíst šifrovací klíče ze serveru.");
-                    }
-
-                    const recipKeyData = await recipKeyRes.json();
-                    const senderKeyData = await senderKeyRes.json();
-
-                    if (!recipKeyData.publicKey) {
-                        alert("Příjemce nemá nastavenou zabezpečenou schránku (E2E). Nelze mu odeslat šifrovanou zprávu.");
-                        restoreButton();
-                        return;
-                    }
-                    if (!senderKeyData.publicKey) {
-                        alert("Nemáte nastavené zabezpečení schránky. Přejděte do Příchozí pošty pro aktivaci.");
-                        restoreButton();
+                    // Fallback to server side encryption if E2E keys are not fully set up
+                    if (!recipientE2EKey || !senderE2EKey) {
+                        // Skip E2E encryption and submit directly
+                        // Server will encrypt using the database data protection provider
+                        composeForm.submit();
                         return;
                     }
 
-                    // 2. Import public keys
-                    const recipientPubKey = await E2E.importPublicKey(recipKeyData.publicKey);
-                    const senderPubKey = await E2E.importPublicKey(senderKeyData.publicKey);
+                    // Otherwise E2E is active! Encrypt client-side
+                    sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Šifrování zprávy...';
 
-                    // 3. Encrypt Subject and Body
+                    // 1. Import public keys
+                    const recipientPubKey = await E2E.importPublicKey(recipientE2EKey);
+                    const senderPubKey = await E2E.importPublicKey(senderE2EKey);
+
+                    // Save key in localStorage to detect future resets
+                    localStorage.setItem("pubkey_" + recipientId, recipientE2EKey);
+
+                    // 2. Encrypt Subject and Body
                     const subject = document.getElementById('subjectInput').value;
                     const body = document.getElementById('bodyInput').value || "";
 
                     const fileInput = document.getElementById('attachmentInput');
                     let finalPayloadString = "";
 
-                    // 4. Encrypt attachment if present
+                    // 3. Encrypt attachment if present
                     if (fileInput && fileInput.files.length > 0) {
                         const file = fileInput.files[0];
                         sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Šifrování přílohy...';
@@ -269,7 +341,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         finalPayloadString = await E2E.encryptMessage(subject, body, recipientPubKey, senderPubKey);
                     }
 
-                    // 5. Replace fields and submit
+                    // 4. Replace fields and submit
                     document.getElementById('subjectInput').value = "[Zašifrovaná zpráva]";
                     document.getElementById('bodyInput').value = finalPayloadString;
 
@@ -278,7 +350,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 } catch (err) {
                     console.error("Encryption failed", err);
-                    alert("Nepodařilo se zašifrovat zprávu: " + err.message);
+                    alert("Nepodařilo se odeslat zprávu: " + err.message);
                     restoreButton();
                 }
             }
@@ -290,6 +362,7 @@ document.addEventListener('DOMContentLoaded', function() {
         sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Odeslat zprávu';
         sendBtn.style.opacity = '1';
     }
+
 });
 </script>
 }

@@ -598,6 +598,45 @@
                     width: auto;
                 }
             }
+            .badge-e2e {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.25rem;
+                padding: 0.15rem 0.45rem;
+                background-color: rgba(16, 185, 129, 0.1);
+                color: #10b981;
+                border: 1px solid rgba(16, 185, 129, 0.2);
+                border-radius: var(--radius-sm);
+                font-size: 0.72rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.03em;
+            }
+
+            .badge-server-enc {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.25rem;
+                padding: 0.15rem 0.45rem;
+                background-color: rgba(100, 116, 139, 0.1);
+                color: #64748b;
+                border: 1px solid rgba(100, 116, 139, 0.2);
+                border-radius: var(--radius-sm);
+                font-size: 0.72rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.03em;
+            }
+
+            [data-theme="dark"] .badge-e2e {
+                background-color: rgba(16, 185, 129, 0.2);
+            }
+
+            [data-theme="dark"] .badge-server-enc {
+                background-color: rgba(148, 163, 184, 0.15);
+                color: #94a3b8;
+                border-color: rgba(148, 163, 184, 0.2);
+            }
         </style>
 
         <!-- Mailbox Help Info Modal -->

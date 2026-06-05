@@ -100,6 +100,14 @@
                                     <div class="msg-subject" style="display: flex; align-items: center; gap: 0.5rem;">
                                         <input type="checkbox" class="msg-select-checkbox" data-id="@msg.SecureId" onclick="event.stopPropagation();" style="cursor: pointer; transform: scale(1.1); margin-right: 0.25rem;" />
                                         <span class="subject-text">@(isE2e ? "Dešifrování..." : msg.Subject)</span>
+                                        @if (isE2e)
+                                        {
+                                            <span class="badge-e2e" title="Koncové (E2E) šifrování"><i class="fas fa-lock"></i> E2E</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge-server-enc" title="Serverové šifrování"><i class="fas fa-shield-halved"></i> Server</span>
+                                        }
                                         @if (msg.IsRead)
                                         {
                                             <span class="read-indicator" title="Přečteno"><i class="fas fa-check-double"></i></span>

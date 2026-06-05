@@ -143,6 +143,14 @@
                                             <span class="unread-dot" style="margin-right: 0.25rem;"></span>
                                         }
                                         <span class="subject-text">@(isE2e ? "Dešifrování..." : msg.Subject)</span>
+                                        @if (isE2e)
+                                        {
+                                            <span class="badge-e2e" title="Koncové (E2E) šifrování"><i class="fas fa-lock"></i> E2E</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge-server-enc" title="Serverové šifrování"><i class="fas fa-shield-halved"></i> Server</span>
+                                        }
                                     </div>
                                     <div class="msg-preview">
                                         @if (msg.AttachmentFileName != null)

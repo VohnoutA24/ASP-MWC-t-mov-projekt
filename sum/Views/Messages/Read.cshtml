@@ -41,7 +41,19 @@
              @(isE2e ? Html.Raw($"data-e2e-payload=\"{Model.Body}\" data-is-sender=\"{(isSender ? "true" : "false")}\" data-download-url=\"{Url.Action("Download", new { id = Model.SecureId })}\" data-preview-url=\"{Url.Action("PublicAttachment", new { secureId = Model.SecureId })}\"") : null)>
             <!-- Header -->
             <div class="read-card-header">
-                <h1 class="read-subject" id="readSubject">@(isE2e ? "Dešifrování..." : Model.Subject)</h1>
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 0.5rem;">
+                    <h1 class="read-subject" id="readSubject" style="margin: 0;">@(isE2e ? "Dešifrování..." : Model.Subject)</h1>
+                    <div id="encryptionBadgeContainer">
+                        @if (isE2e)
+                        {
+                            <span class="badge-e2e" style="font-size: 0.78rem; padding: 0.2rem 0.5rem;"><i class="fas fa-lock"></i> E2E šifrování</span>
+                        }
+                        else
+                        {
+                            <span class="badge-server-enc" style="font-size: 0.78rem; padding: 0.2rem 0.5rem;"><i class="fas fa-shield-halved"></i> Serverové zabezpečení</span>
+                        }
+                    </div>
+                </div>
                 <div class="read-meta">
                     <div class="read-participants">
                         <div class="read-avatar">
