@@ -248,12 +248,13 @@
         document.getElementById("chatPlaceholder").style.display = "none";
         document.getElementById("activeChatInterface").style.display = "flex";
 
-        // Reset input state
+        // Reset input state and immediately clear the container for security & privacy
         const textarea = document.getElementById("chatInputTextarea");
         textarea.value = "";
         textarea.style.height = "44px";
         document.getElementById("chatCharCounter").textContent = "0 / 2000";
         document.getElementById("chatBtnSend").disabled = true;
+        document.getElementById("chatMessagesContainer").innerHTML = "";
 
         lastMessageCount = 0;
         await loadMessages();
@@ -265,13 +266,18 @@
 
     async function loadMessages() {
         if (!activeContactId) return;
+        const currentChatId = activeContactId;
 
         try {
-            const response = await fetch(`/Messages/GetChatMessages?contactId=${activeContactId}`);
+            const response = await fetch(`/Messages/GetChatMessages?contactId=${currentChatId}`);
             if (!response.ok) return;
+
+            if (activeContactId !== currentChatId) return;
 
             const messages = await response.json();
             
+            if (activeContactId !== currentChatId) return;
+
             // Optimization: Only re-render if the count has changed
             if (messages.length === lastMessageCount) return;
 
@@ -289,9 +295,12 @@
                 }
             }
 
+            if (activeContactId !== currentChatId) return;
+
             const currentUserId = @currentUserId;
 
             for (const msg of messages) {
+                if (activeContactId !== currentChatId) return;
                 const isSentByMe = msg.senderId === currentUserId;
                 const bubble = document.createElement("div");
                 bubble.className = `chat-message-bubble ${isSentByMe ? 'outgoing' : 'incoming'}`;
@@ -326,6 +335,8 @@
                 container.appendChild(bubble);
             }
 
+            if (activeContactId !== currentChatId) return;
+
             lastMessageCount = messages.length;
             
             // Scroll to bottom
@@ -340,6 +351,7 @@
         const textarea = document.getElementById("chatInputTextarea");
         const text = textarea.value.trim();
         if (!text || !activeContactId) return;
+        const targetContactId = activeContactId;
 
         // Disable input during send
         textarea.disabled = true;
@@ -378,7 +390,7 @@
             const verificationToken = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
 
             const formData = new FormData();
-            formData.append("contactId", activeContactId);
+            formData.append("contactId", targetContactId);
             formData.append("body", finalBody);
             if (verificationToken) {
                 formData.append("__RequestVerificationToken", verificationToken);
@@ -390,10 +402,12 @@
             });
 
             if (response.ok) {
-                textarea.value = "";
-                textarea.style.height = "44px";
-                document.getElementById("chatCharCounter").textContent = "0 / 2000";
-                await loadMessages();
+                if (activeContactId === targetContactId) {
+                    textarea.value = "";
+                    textarea.style.height = "44px";
+                    document.getElementById("chatCharCounter").textContent = "0 / 2000";
+                    await loadMessages();
+                }
             } else {
                 alert("Nepodařilo se odeslat zprávu.");
             }
