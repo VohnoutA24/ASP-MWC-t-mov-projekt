@@ -241,6 +241,365 @@
             window.userEmail = "@User.FindFirst(ClaimTypes.Email)?.Value";
         </script>
 
+        <style>
+            /* Embedded mailbox help styles to ensure proper rendering even with cached site.css */
+            .btn-info-custom {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.45rem 1rem;
+                border-radius: var(--radius-full);
+                font-size: 0.85rem;
+                font-weight: 600;
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                cursor: pointer;
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                border: 1px solid var(--border);
+                background: var(--bg-card);
+                color: var(--text-secondary);
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            }
+
+            .btn-info-custom i {
+                color: var(--primary);
+                font-size: 0.9rem;
+                transition: transform 0.2s ease;
+            }
+
+            .btn-info-custom:hover {
+                border-color: var(--primary);
+                color: var(--primary);
+                background: var(--primary-50);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 6px rgba(194, 24, 91, 0.08);
+            }
+
+            .btn-info-custom:hover i {
+                transform: rotate(15deg) scale(1.1);
+            }
+
+            [data-theme="dark"] .btn-info-custom {
+                border-color: var(--border);
+                background: var(--bg-card);
+                color: var(--text-secondary);
+            }
+
+            [data-theme="dark"] .btn-info-custom:hover {
+                border-color: var(--primary);
+                color: var(--primary);
+                background: rgba(194, 24, 91, 0.15);
+            }
+
+            .info-modal-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(15, 23, 42, 0.6);
+                backdrop-filter: blur(8px);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 2000;
+                animation: fadeIn 0.3s ease;
+            }
+
+            .info-modal-card {
+                background: var(--bg-card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-lg);
+                box-shadow: var(--shadow-lg);
+                width: 90%;
+                max-width: 800px;
+                max-height: 85vh;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+                animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            }
+
+            .info-modal-header {
+                padding: 1.25rem 1.5rem;
+                border-bottom: 1px solid var(--border);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                background: linear-gradient(135deg, var(--primary-50) 0%, transparent 100%);
+            }
+
+            .info-modal-header h2 {
+                font-size: 1.25rem;
+                font-weight: 700;
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                color: var(--text-primary);
+                margin: 0;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .info-modal-close {
+                background: none;
+                border: none;
+                color: var(--text-muted);
+                font-size: 1.2rem;
+                cursor: pointer;
+                transition: var(--transition);
+                padding: 0.25rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .info-modal-close:hover {
+                color: var(--primary);
+                transform: scale(1.1);
+            }
+
+            .info-modal-body {
+                padding: 0;
+                overflow: hidden;
+                flex: 1;
+                display: grid;
+                grid-template-columns: 220px 1fr;
+                height: 60vh;
+            }
+
+            .info-nav {
+                display: flex;
+                flex-direction: column;
+                gap: 0.35rem;
+                border-right: 1px solid var(--border-light);
+                padding: 1.5rem 1rem;
+                background: var(--bg-secondary);
+                overflow-y: auto;
+            }
+
+            .info-nav-btn {
+                text-align: left;
+                background: none;
+                border: none;
+                padding: 0.65rem 0.85rem;
+                border-radius: var(--radius-md);
+                font-size: 0.88rem;
+                font-weight: 600;
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                color: var(--text-secondary);
+                cursor: pointer;
+                transition: var(--transition);
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                width: 100%;
+            }
+
+            .info-nav-btn:hover {
+                background: var(--bg-tertiary);
+                color: var(--text-primary);
+            }
+
+            .info-nav-btn.active {
+                background: var(--primary-50);
+                color: var(--primary);
+            }
+
+            .info-content-area {
+                padding: 1.5rem;
+                overflow-y: auto;
+                display: flex;
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+
+            .info-section {
+                display: none;
+                animation: fadeIn 0.3s ease;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .info-section.active {
+                display: flex;
+            }
+
+            .info-feature-card {
+                background: var(--bg-secondary);
+                border: 1px solid var(--border-light);
+                border-radius: var(--radius-md);
+                padding: 1.25rem;
+                display: flex;
+                gap: 1rem;
+                align-items: flex-start;
+                text-align: left;
+            }
+
+            .info-feature-icon {
+                font-size: 1.35rem;
+                color: var(--primary);
+                background: var(--primary-50);
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+
+            .info-feature-text h4 {
+                margin: 0 0 0.35rem 0;
+                font-size: 0.95rem;
+                font-weight: 600;
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                color: var(--text-primary);
+            }
+
+            .info-feature-text p {
+                margin: 0;
+                font-size: 0.85rem;
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                color: var(--text-secondary);
+                line-height: 1.45;
+            }
+
+            .faq-item {
+                border: 1px solid var(--border-light);
+                border-radius: var(--radius-md);
+                overflow: hidden;
+                margin-bottom: 0.75rem;
+            }
+
+            .faq-question {
+                width: 100%;
+                text-align: left;
+                background: var(--bg-secondary);
+                border: none;
+                padding: 0.85rem 1.25rem;
+                font-size: 0.9rem;
+                font-weight: 600;
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                color: var(--text-primary);
+                cursor: pointer;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                transition: var(--transition);
+            }
+
+            .faq-question:hover {
+                background: var(--bg-tertiary);
+                color: var(--primary);
+            }
+
+            .faq-question i {
+                transition: transform 0.2s ease;
+                font-size: 0.8rem;
+                color: var(--text-muted);
+            }
+
+            .faq-question.active i {
+                transform: rotate(180deg);
+                color: var(--primary);
+            }
+
+            .faq-answer {
+                padding: 0;
+                max-height: 0;
+                overflow: hidden;
+                transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+                background: var(--bg-card);
+                font-size: 0.85rem;
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                color: var(--text-secondary);
+                line-height: 1.5;
+                text-align: left;
+                border-top: 0px solid transparent;
+            }
+
+            .faq-answer.open {
+                padding: 1rem 1.25rem;
+                max-height: 500px;
+                border-top: 1px solid var(--border-light);
+            }
+
+            /* Dark mode overrides for Info modal */
+            [data-theme="dark"] .info-modal-card {
+                background: var(--bg-card);
+                border-color: var(--border);
+            }
+
+            [data-theme="dark"] .info-modal-header {
+                border-bottom: 1px solid var(--border);
+                background: linear-gradient(135deg, rgba(194, 24, 91, 0.15) 0%, transparent 100%);
+            }
+
+            [data-theme="dark"] .info-nav {
+                border-right: 1px solid var(--border);
+                background: var(--bg-tertiary);
+            }
+
+            [data-theme="dark"] .info-nav-btn:hover {
+                background: var(--bg-secondary);
+            }
+
+            [data-theme="dark"] .info-nav-btn.active {
+                background: rgba(194, 24, 91, 0.15);
+                color: var(--primary);
+            }
+
+            [data-theme="dark"] .info-feature-card {
+                background: var(--bg-tertiary);
+                border-color: var(--border);
+            }
+
+            [data-theme="dark"] .info-feature-icon {
+                background: rgba(194, 24, 91, 0.2);
+            }
+
+            [data-theme="dark"] .faq-item {
+                border-color: var(--border);
+            }
+
+            [data-theme="dark"] .faq-question {
+                background: var(--bg-tertiary);
+            }
+
+            [data-theme="dark"] .faq-question:hover {
+                background: var(--bg-secondary);
+            }
+
+            [data-theme="dark"] .faq-answer {
+                background: var(--bg-card);
+            }
+
+            [data-theme="dark"] .faq-answer.open {
+                border-top: 1px solid var(--border);
+            }
+
+            @media (max-width: 640px) {
+                .info-modal-body {
+                    grid-template-columns: 1fr;
+                    height: 70vh;
+                }
+                .info-nav {
+                    display: flex;
+                    flex-direction: row;
+                    overflow-x: auto;
+                    border-right: none;
+                    border-bottom: 1px solid var(--border-light);
+                    padding: 0.75rem 1rem;
+                    gap: 0.5rem;
+                    width: 100%;
+                }
+                .info-nav-btn {
+                    white-space: nowrap;
+                    padding: 0.4rem 0.75rem;
+                    width: auto;
+                }
+            }
+        </style>
+
         <!-- Mailbox Help Info Modal -->
         <div id="mailboxInfoModal" class="info-modal-overlay" style="display: none;">
             <div class="info-modal-card">
