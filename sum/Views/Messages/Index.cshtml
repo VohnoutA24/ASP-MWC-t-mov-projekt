@@ -127,7 +127,18 @@
                              data-is-sender="@(isSentByMe ? "true" : "false")">
                             <a asp-action="Read" asp-route-id="@msg.SecureId" class="msg-row-link">
                                 <div class="msg-avatar @(isSentByMe ? "sent-avatar" : "")">
-                                    <i class="fas fa-user-circle"></i>
+                                    @if (isSentByMe && msg.Recipient?.ProfilePicture != null)
+                                    {
+                                        <img src="@Url.Action("ProfilePicture", "Account", new { userId = msg.Recipient.Id })" alt="Avatar" class="msg-avatar-img" />
+                                    }
+                                    else if (!isSentByMe && msg.Sender?.ProfilePicture != null)
+                                    {
+                                        <img src="@Url.Action("ProfilePicture", "Account", new { userId = msg.Sender.Id })" alt="Avatar" class="msg-avatar-img" />
+                                    }
+                                    else
+                                    {
+                                        <i class="fas fa-user-circle"></i>
+                                    }
                                 </div>
                                 <div class="msg-info">
                                     <div class="msg-top">

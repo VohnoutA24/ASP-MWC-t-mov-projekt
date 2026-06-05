@@ -61,6 +61,7 @@ namespace sum.Controllers
 
             var messages = await _db.Messages
                 .Include(m => m.Recipient)
+                .Include(m => m.Sender)
                 .Where(m => m.SenderId == userId.Value && !m.SenderDeleted)
                 .OrderByDescending(m => m.SentAt)
                 .ToListAsync();

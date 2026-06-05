@@ -61,7 +61,14 @@
                 <div class="read-meta">
                     <div class="read-participants">
                         <div class="read-avatar">
-                            <i class="fas fa-user-circle"></i>
+                            @if (Model.Sender?.ProfilePicture != null)
+                            {
+                                <img src="@Url.Action("ProfilePicture", "Account", new { userId = Model.SenderId })" alt="Avatar" class="read-avatar-img" />
+                            }
+                            else
+                            {
+                                <i class="fas fa-user-circle"></i>
+                            }
                         </div>
                         <div class="read-participant-info">
                             <div class="read-from">

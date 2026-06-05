@@ -66,9 +66,17 @@
                                     data-email="@user.Email"
                                     data-role="@roleText"
                                     data-public-key="@user.PublicKey"
+                                    data-has-profile-picture="@(user.ProfilePicture != null ? "true" : "false")"
                                     onclick="selectContact(this)">
                                 <div class="chat-contact-avatar">
-                                    <span>@initial</span>
+                                    @if (user.ProfilePicture != null)
+                                    {
+                                        <img src="@Url.Action("ProfilePicture", "Account", new { userId = user.Id })" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block;" />
+                                    }
+                                    else
+                                    {
+                                        <span>@initial</span>
+                                    }
                                 </div>
                                 <div class="chat-contact-info">
                                     <div class="chat-contact-name">@displayName</div>
@@ -234,7 +242,13 @@
         // Setup Header details
         document.getElementById("activeChatName").textContent = name;
         document.getElementById("activeChatRole").textContent = role;
-        document.getElementById("activeChatAvatar").querySelector("span").textContent = name[0].toUpperCase();
+        const hasProfilePicture = element.getAttribute("data-has-profile-picture") === "true";
+        const avatarDiv = document.getElementById("activeChatAvatar");
+        if (hasProfilePicture) {
+            avatarDiv.innerHTML = `<img src="/Account/ProfilePicture?userId=${activeContactId}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block;" />`;
+        } else {
+            avatarDiv.innerHTML = `<span>${name[0].toUpperCase()}</span>`;
+        }
 
         const badgeContainer = document.getElementById("activeChatSecurityBadge");
         if (activePublicKey && activePublicKey !== "null" && activePublicKey !== "") {

@@ -97,7 +97,14 @@
                              data-is-sender="true">
                             <a asp-action="Read" asp-route-id="@msg.SecureId" class="msg-row-link">
                                 <div class="msg-avatar sent-avatar">
-                                    <i class="fas fa-user-circle"></i>
+                                    @if (msg.Sender?.ProfilePicture != null)
+                                    {
+                                        <img src="@Url.Action("ProfilePicture", "Account", new { userId = msg.Sender.Id })" alt="Avatar" class="msg-avatar-img" />
+                                    }
+                                    else
+                                    {
+                                        <i class="fas fa-user-circle"></i>
+                                    }
                                 </div>
                                 <div class="msg-info">
                                     <div class="msg-top">
