@@ -332,6 +332,32 @@ namespace sum.Controllers
             return Json(new { count });
         }
 
+        // GET: /Messages/GetNotifications (AJAX polling endpoint)
+        [HttpGet]
+        public async Task<IActionResult> GetNotifications()
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null) return Unauthorized();
+
+            var mailCount = await _db.Messages
+                .CountAsync(m => m.RecipientId == userId.Value && !m.IsRead && !m.RecipientDeleted);
+
+            var chatCounts = await _db.ChatMessages
+                .Where(m => m.RecipientId == userId.Value && !m.IsRead)
+                .GroupBy(m => m.SenderId)
+                .Select(g => new { SenderId = g.Key, Count = g.Count() })
+                .ToListAsync();
+
+            var totalChatCount = chatCounts.Sum(c => c.Count);
+            var chatMap = chatCounts.ToDictionary(c => c.SenderId, c => c.Count);
+
+            return Json(new {
+                mailCount = mailCount,
+                chatTotalCount = totalChatCount,
+                chatContacts = chatMap
+            });
+        }
+
         // GET: /Messages/Trash
         [HttpGet]
         public async Task<IActionResult> Trash()
@@ -707,6 +733,27 @@ namespace sum.Controllers
                 .CountAsync(m => m.RecipientId == userId.Value && !m.IsRead && !m.RecipientDeleted);
             ViewBag.UnreadCount = inboxUnreadCount;
 
+            // Calculate unread chat messages per contact
+            var unreadChatCounts = await _db.ChatMessages
+                .Where(m => m.RecipientId == userId.Value && !m.IsRead)
+                .GroupBy(m => m.SenderId)
+                .Select(g => new { SenderId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(g => g.SenderId, g => g.Count);
+            ViewBag.UnreadChatCounts = unreadChatCounts;
+
+            // For each contact, find the timestamp of the last message exchanged (either sent or received)
+            var lastMessages = await _db.ChatMessages
+                .Where(m => m.SenderId == userId.Value || m.RecipientId == userId.Value)
+                .ToListAsync();
+
+            var lastMessageTimeMap = lastMessages
+                .GroupBy(m => m.SenderId == userId.Value ? m.RecipientId : m.SenderId)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Max(m => m.SentAt)
+                );
+            ViewBag.LastMessageTimes = lastMessageTimeMap;
+
             ViewBag.ActiveTab = "chat";
             return View();
         }
@@ -723,6 +770,17 @@ namespace sum.Controllers
                             (m.SenderId == contactId && m.RecipientId == userId.Value))
                 .OrderBy(m => m.SentAt)
                 .ToListAsync();
+
+            // Mark incoming messages from contactId to current user as read
+            var unreadIncoming = messages.Where(m => m.SenderId == contactId && m.RecipientId == userId.Value && !m.IsRead).ToList();
+            if (unreadIncoming.Any())
+            {
+                foreach (var msg in unreadIncoming)
+                {
+                    msg.IsRead = true;
+                }
+                await _db.SaveChangesAsync();
+            }
 
             var result = messages.Select(m => {
                 string payload = m.EncryptedPayload;

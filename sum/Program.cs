@@ -203,12 +203,22 @@ using (var scope = app.Services.CreateScope())
                         SenderId INTEGER NOT NULL,
                         RecipientId INTEGER NOT NULL,
                         EncryptedPayload TEXT NOT NULL,
+                        IsRead INTEGER NOT NULL DEFAULT 0,
                         SentAt TEXT NOT NULL,
                         FOREIGN KEY (SenderId) REFERENCES Users (Id) ON DELETE RESTRICT,
                         FOREIGN KEY (RecipientId) REFERENCES Users (Id) ON DELETE RESTRICT
                     );";
                 await cmd.ExecuteNonQueryAsync();
             }
+
+            // Alter ChatMessages to add IsRead column if it exists but is missing the column (for legacy sqlite db)
+            try
+            {
+                using var alterCmd = conn.CreateCommand();
+                alterCmd.CommandText = "ALTER TABLE ChatMessages ADD COLUMN IsRead INTEGER NOT NULL DEFAULT 0;";
+                await alterCmd.ExecuteNonQueryAsync();
+            }
+            catch { }
 
             // Create indexes for ChatMessages
             try
@@ -281,10 +291,13 @@ using (var scope = app.Services.CreateScope())
                     ""SenderId"" INTEGER NOT NULL,
                     ""RecipientId"" INTEGER NOT NULL,
                     ""EncryptedPayload"" TEXT NOT NULL,
+                    ""IsRead"" BOOLEAN NOT NULL DEFAULT FALSE,
                     ""SentAt"" timestamp with time zone NOT NULL,
                     CONSTRAINT ""FK_ChatMessages_Users_SenderId"" FOREIGN KEY (""SenderId"") REFERENCES ""Users"" (""Id"") ON DELETE RESTRICT,
                     CONSTRAINT ""FK_ChatMessages_Users_RecipientId"" FOREIGN KEY (""RecipientId"") REFERENCES ""Users"" (""Id"") ON DELETE RESTRICT
                 );");
+
+            await db.Database.ExecuteSqlRawAsync("ALTER TABLE \"ChatMessages\" ADD COLUMN IF NOT EXISTS \"IsRead\" BOOLEAN NOT NULL DEFAULT FALSE;");
 
             await db.Database.ExecuteSqlRawAsync("CREATE INDEX IF NOT EXISTS \"IX_ChatMessages_SenderId\" ON \"ChatMessages\" (\"SenderId\");");
             await db.Database.ExecuteSqlRawAsync("CREATE INDEX IF NOT EXISTS \"IX_ChatMessages_RecipientId\" ON \"ChatMessages\" (\"RecipientId\");");

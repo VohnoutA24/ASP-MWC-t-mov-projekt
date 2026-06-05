@@ -18,6 +18,7 @@
     }
 
     int unreadMessagesCount = 0;
+    int unreadChatsCount = 0;
     int pendingHomeworkCount = 0;
     if (User.Identity?.IsAuthenticated == true)
     {
@@ -25,6 +26,7 @@
         if (int.TryParse(userIdClaim, out int userId))
         {
             unreadMessagesCount = DbContext.Messages.Count(m => m.RecipientId == userId && !m.IsRead && !m.RecipientDeleted);
+            unreadChatsCount = DbContext.ChatMessages.Count(m => m.RecipientId == userId && !m.IsRead);
             var roleClaim = User.FindFirst(ClaimTypes.Role)?.Value;
             if (roleClaim == "Student")
             {
@@ -103,12 +105,15 @@
                                 </a>
                             </li>
                             <li>
-                                <a class="nav-link" asp-area="" asp-controller="Messages" asp-action="Index">
+                                <a class="nav-link" asp-area="" asp-controller="Messages" asp-action="Index" id="layoutMailNavLink">
                                     <i class="fas fa-envelope"></i> Pošta
-                                    @if (unreadMessagesCount > 0)
-                                    {
-                                        <span class="badge bg-danger rounded-pill floaty-badge">@unreadMessagesCount</span>
-                                    }
+                                    <span class="badge bg-danger rounded-pill floaty-badge" id="layoutMailBadge" style="@(unreadMessagesCount > 0 ? "" : "display: none;")">@unreadMessagesCount</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="nav-link" asp-area="" asp-controller="Messages" asp-action="Chat" id="layoutChatNavLink">
+                                    <i class="fas fa-comments"></i> Chat
+                                    <span class="badge bg-danger rounded-pill floaty-badge" id="layoutChatBadge" style="@(unreadChatsCount > 0 ? "" : "display: none;")">@unreadChatsCount</span>
                                 </a>
                             </li>
                             <li>
@@ -868,6 +873,74 @@
             }
         });
     </script>
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <script>
+            (function() {
+                async function pollNotifications() {
+                    try {
+                        const res = await fetch('/Messages/GetNotifications');
+                        if (!res.ok) return;
+                        const data = await res.json();
+
+                        // 1. Update layout header nav badges
+                        const mailBadge = document.getElementById("layoutMailBadge");
+                        if (mailBadge) {
+                            mailBadge.textContent = data.mailCount;
+                            mailBadge.style.display = data.mailCount > 0 ? "" : "none";
+                        }
+                        
+                        const chatBadge = document.getElementById("layoutChatBadge");
+                        if (chatBadge) {
+                            chatBadge.textContent = data.chatTotalCount;
+                            chatBadge.style.display = data.chatTotalCount > 0 ? "" : "none";
+                        }
+
+                        // 2. Update sidebar inbox link badge if it exists
+                        const sidebarInboxLink = document.getElementById("inboxLink");
+                        if (sidebarInboxLink) {
+                            let badge = sidebarInboxLink.querySelector(".msg-badge");
+                            if (data.mailCount > 0) {
+                                if (!badge) {
+                                    badge = document.createElement("span");
+                                    badge.className = "msg-badge";
+                                    sidebarInboxLink.appendChild(badge);
+                                }
+                                badge.textContent = data.mailCount;
+                            } else if (badge) {
+                                badge.remove();
+                            }
+                        }
+
+                        // 3. Update sidebar chat link badge if it exists
+                        const sidebarChatLink = document.getElementById("chatLink");
+                        if (sidebarChatLink) {
+                            let badge = sidebarChatLink.querySelector(".msg-badge");
+                            if (data.chatTotalCount > 0) {
+                                if (!badge) {
+                                    badge = document.createElement("span");
+                                    badge.className = "msg-badge";
+                                    sidebarChatLink.appendChild(badge);
+                                }
+                                badge.textContent = data.chatTotalCount;
+                            } else if (badge) {
+                                badge.remove();
+                            }
+                        }
+
+                        // 4. Dispatch custom event for Chat page to handle individual contact badge updates
+                        document.dispatchEvent(new CustomEvent("notifications-updated", { detail: data }));
+
+                    } catch (e) {
+                        console.error("Failed to poll notifications", e);
+                    }
+                }
+
+                // Poll every 6 seconds
+                setInterval(pollNotifications, 6000);
+            })();
+        </script>
+    }
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -4,6 +4,9 @@
     var users = ViewBag.Users as List<sum.Models.User> ?? new List<sum.Models.User>();
     var unreadCount = (int)(ViewBag.UnreadCount ?? 0);
     var currentUserId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
+
+    var unreadChatCounts = ViewBag.UnreadChatCounts as Dictionary<int, int> ?? new Dictionary<int, int>();
+    var totalChatUnread = unreadChatCounts.Values.Sum();
 }
 
 <div class="messages-page">
@@ -41,6 +44,10 @@
                 <a asp-action="Chat" class="msg-nav-item active" id="chatLink">
                     <i class="fas fa-comments"></i>
                     <span>Chat</span>
+                    @if (totalChatUnread > 0)
+                    {
+                        <span class="msg-badge">@totalChatUnread</span>
+                    }
                 </a>
             </nav>
         </aside>
@@ -50,8 +57,19 @@
             <div class="chat-container">
                 <!-- Contacts Pane -->
                 <div class="chat-contacts-pane">
-                    <div class="chat-search-wrapper">
+                    <div class="chat-search-wrapper" style="display: flex; flex-direction: column; gap: 0.5rem;">
                         <input type="text" id="chatSearchInput" class="chat-search-input" placeholder="Hledat kontakt..." />
+                    </div>
+                    <div class="chat-filter-wrapper" style="padding: 0.5rem 1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; background: var(--bg-card);">
+                        <label for="chatSortSelect" style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin: 0; display: flex; align-items: center; gap: 0.25rem;">
+                            <i class="fas fa-sort-amount-down"></i> Seřadit:
+                        </label>
+                        <select id="chatSortSelect" class="form-input" style="font-size: 0.8rem; padding: 0.25rem 0.5rem; width: auto; height: auto; border-radius: var(--radius-sm); border-color: var(--border);">
+                            <option value="name">Abecedně (A-Z)</option>
+                            <option value="role">Dle role</option>
+                            <option value="unread">Dle nepřečtených</option>
+                            <option value="recent">Dle poslední zprávy</option>
+                        </select>
                     </div>
                     <div class="chat-contacts-list" id="chatContactsList">
                         @foreach (var user in users)
@@ -60,11 +78,19 @@
                             var displayName = user.FullName ?? user.Username;
                             var initial = !string.IsNullOrEmpty(displayName) ? displayName[0].ToString().ToUpper() : "?";
                             
+                            unreadChatCounts.TryGetValue(user.Id, out var contactUnread);
+
+                            var lastMessageTimes = ViewBag.LastMessageTimes as Dictionary<int, DateTime> ?? new Dictionary<int, DateTime>();
+                            lastMessageTimes.TryGetValue(user.Id, out var lastTime);
+                            var lastTimeIso = lastTime != default ? lastTime.ToString("o") : "";
+
                             <button class="chat-contact-item" 
                                     data-user-id="@user.Id" 
                                     data-name="@displayName" 
                                     data-email="@user.Email"
                                     data-role="@roleText"
+                                    data-unread="@contactUnread"
+                                    data-last-message-time="@lastTimeIso"
                                     data-public-key="@user.PublicKey"
                                     data-has-profile-picture="@(user.ProfilePicture != null ? "true" : "false")"
                                     onclick="selectContact(this)">
@@ -78,8 +104,11 @@
                                         <span>@initial</span>
                                     }
                                 </div>
-                                <div class="chat-contact-info">
-                                    <div class="chat-contact-name">@displayName</div>
+                                <div class="chat-contact-info" style="flex: 1; min-width: 0;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 0.5rem;">
+                                        <div class="chat-contact-name" style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">@displayName</div>
+                                        <span class="contact-unread-badge badge bg-danger rounded-pill" data-contact-unread-id="@user.Id" style="@(contactUnread > 0 ? "" : "display: none;") font-size: 0.72rem; padding: 0.2rem 0.45rem;">@contactUnread</span>
+                                    </div>
                                     <div class="chat-contact-role">@roleText</div>
                                     <div class="chat-contact-badge-wrapper">
                                         @if (!string.IsNullOrEmpty(user.PublicKey))
@@ -181,6 +210,7 @@
         const textarea = document.getElementById("chatInputTextarea");
         const sendBtn = document.getElementById("chatBtnSend");
         const charCounter = document.getElementById("chatCharCounter");
+        const sortSelect = document.getElementById("chatSortSelect");
 
         // Contacts list search filter
         if (searchInput) {
@@ -198,6 +228,14 @@
                 });
             });
         }
+
+        // Sorting selector listener
+        if (sortSelect) {
+            sortSelect.addEventListener("change", sortContacts);
+        }
+
+        // Initial sort
+        sortContacts();
 
         // Textarea height auto-adjust and character count limit
         if (textarea) {
@@ -226,7 +264,83 @@
                 }
             });
         }
+
+        // Listen for global notification updates from layout polling
+        document.addEventListener("notifications-updated", function (e) {
+            const data = e.detail;
+            if (!data || !data.chatContacts) return;
+
+            const contactItems = document.querySelectorAll(".chat-contact-item");
+            contactItems.forEach(item => {
+                const id = parseInt(item.getAttribute("data-user-id"));
+                const badge = item.querySelector(".contact-unread-badge");
+                const count = data.chatContacts[id] || 0;
+
+                // If this is the active contact, we keep it read (0)
+                if (activeContactId && id === parseInt(activeContactId)) {
+                    item.setAttribute("data-unread", "0");
+                    if (badge) badge.style.display = "none";
+                    return;
+                }
+
+                item.setAttribute("data-unread", count.toString());
+                if (badge) {
+                    badge.textContent = count;
+                    badge.style.display = count > 0 ? "" : "none";
+                }
+            });
+
+            // Re-sort if sorted by unread
+            const sortBy = document.getElementById("chatSortSelect")?.value;
+            if (sortBy === "unread") {
+                sortContacts();
+            }
+        });
     });
+
+    function sortContacts() {
+        const sortSelect = document.getElementById("chatSortSelect");
+        if (!sortSelect) return;
+        const sortBy = sortSelect.value;
+        const contactsList = document.getElementById("chatContactsList");
+        if (!contactsList) return;
+        const items = Array.from(contactsList.querySelectorAll(".chat-contact-item"));
+
+        items.sort((a, b) => {
+            if (sortBy === "name") {
+                return a.getAttribute("data-name").localeCompare(b.getAttribute("data-name"), "cs");
+            }
+            if (sortBy === "role") {
+                const roleA = a.getAttribute("data-role");
+                const roleB = b.getAttribute("data-role");
+                if (roleA === roleB) {
+                    return a.getAttribute("data-name").localeCompare(b.getAttribute("data-name"), "cs");
+                }
+                return roleA === "Učitel" ? -1 : 1;
+            }
+            if (sortBy === "unread") {
+                const unreadA = parseInt(a.getAttribute("data-unread") || "0");
+                const unreadB = parseInt(b.getAttribute("data-unread") || "0");
+                if (unreadA === unreadB) {
+                    return a.getAttribute("data-name").localeCompare(b.getAttribute("data-name"), "cs");
+                }
+                return unreadB - unreadA; // Descending (more unread first)
+            }
+            if (sortBy === "recent") {
+                const timeA = a.getAttribute("data-last-message-time") || "";
+                const timeB = b.getAttribute("data-last-message-time") || "";
+                if (timeA === timeB) {
+                    return a.getAttribute("data-name").localeCompare(b.getAttribute("data-name"), "cs");
+                }
+                if (!timeA) return 1;
+                if (!timeB) return -1;
+                return new Date(timeB) - new Date(timeA); // Descending (newest first)
+            }
+            return 0;
+        });
+
+        items.forEach(item => contactsList.appendChild(item));
+    }
 
     async function selectContact(element) {
         // Toggle active class in contact list
@@ -238,6 +352,17 @@
         
         const name = element.getAttribute("data-name");
         const role = element.getAttribute("data-role");
+
+        // Clear unread badge immediately on select
+        element.setAttribute("data-unread", "0");
+        const badge = element.querySelector(".contact-unread-badge");
+        if (badge) badge.style.display = "none";
+
+        // Re-sort if sorted by unread
+        const sortBy = document.getElementById("chatSortSelect")?.value;
+        if (sortBy === "unread") {
+            sortContacts();
+        }
 
         // Setup Header details
         document.getElementById("activeChatName").textContent = name;
@@ -356,6 +481,26 @@
             // Scroll to bottom
             container.scrollTop = container.scrollHeight;
 
+            // Update active contact last message time to newest message
+            if (messages.length > 0) {
+                const lastMsg = messages[messages.length - 1];
+                // In msg, sentAt is formatted like "dd.MM.yyyy HH:mm:ss"
+                const parts = lastMsg.sentAt.split(/[\s.:]/); // [dd, MM, yyyy, HH, mm, ss]
+                if (parts.length >= 6) {
+                    const date = new Date(parts[2], parts[1] - 1, parts[0], parts[3], parts[4], parts[5]);
+                    const activeContactItem = document.querySelector(`.chat-contact-item[data-user-id="${activeContactId}"]`);
+                    if (activeContactItem) {
+                        activeContactItem.setAttribute("data-last-message-time", date.toISOString());
+                        
+                        // Re-sort if sorted by recent
+                        const sortBy = document.getElementById("chatSortSelect")?.value;
+                        if (sortBy === "recent") {
+                            sortContacts();
+                        }
+                    }
+                }
+            }
+
         } catch (error) {
             console.error("Failed to load chat messages", error);
         }
@@ -420,6 +565,17 @@
                     textarea.value = "";
                     textarea.style.height = "44px";
                     document.getElementById("chatCharCounter").textContent = "0 / 2000";
+                    
+                    // Update active contact last message time to current time
+                    const activeContactItem = document.querySelector(`.chat-contact-item[data-user-id="${targetContactId}"]`);
+                    if (activeContactItem) {
+                        activeContactItem.setAttribute("data-last-message-time", new Date().toISOString());
+                        const sortBy = document.getElementById("chatSortSelect")?.value;
+                        if (sortBy === "recent") {
+                            sortContacts();
+                        }
+                    }
+
                     await loadMessages();
                 }
             } else {

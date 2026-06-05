@@ -22,6 +22,8 @@ namespace sum.Models
         [Required]
         public string EncryptedPayload { get; set; } = string.Empty;
 
+        public bool IsRead { get; set; } = false;
+
         public DateTime SentAt { get; set; } = DateTime.UtcNow;
     }
 }
