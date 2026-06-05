@@ -116,7 +116,7 @@ namespace sum.Controllers
                 {
                     bool isOriginalE2e = original.Body != null && original.Body.StartsWith("__E2E__:");
                     var decryptedSubject = isOriginalE2e ? "[Zašifrovaná zpráva]" : EncryptionHelper.Decrypt(original.Subject);
-                    var decryptedBody = isOriginalE2e ? "" : EncryptionHelper.Decrypt(original.Body);
+                    var decryptedBody = isOriginalE2e ? original.Body : EncryptionHelper.Decrypt(original.Body);
 
                     model.RecipientId = original.SenderId == userId.Value
                         ? original.RecipientId
@@ -124,7 +124,7 @@ namespace sum.Controllers
                     model.Subject = decryptedSubject.StartsWith("Re: ")
                         ? decryptedSubject
                         : $"Re: {decryptedSubject}";
-                    model.Body = isOriginalE2e ? "" : $"\n\n--- Původní zpráva ---\nOd: {original.Sender?.Email}\nDne: {original.SentAt:dd.MM.yyyy HH:mm}\n\n{decryptedBody}";
+                    model.Body = $"\n\n--- Původní zpráva ---\nOd: {original.Sender?.Email}\nDne: {original.SentAt.ToCzechTime():dd.MM.yyyy HH:mm}\n\n{decryptedBody}";
                 }
             }
 

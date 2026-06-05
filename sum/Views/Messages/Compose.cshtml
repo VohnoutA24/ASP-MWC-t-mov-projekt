@@ -363,6 +363,49 @@ document.addEventListener('DOMContentLoaded', function() {
         sendBtn.style.opacity = '1';
     }
 
+    // Decrypt original E2E message if replying
+    document.addEventListener("e2e-ready", async function () {
+        const privateKeySession = sessionStorage.getItem("decryptedPrivateKey");
+        if (!privateKeySession) return;
+
+        const bodyInput = document.getElementById("bodyInput");
+        const subjectInput = document.getElementById("subjectInput");
+        if (!bodyInput) return;
+
+        const bodyText = bodyInput.value;
+        const e2eIndex = bodyText.indexOf("__E2E__:");
+        if (e2eIndex === -1) return;
+
+        const payload = bodyText.substring(e2eIndex);
+        const prefix = bodyText.substring(0, e2eIndex);
+
+        try {
+            const privateKeyObj = await E2E.importPrivateKeyFromSession(privateKeySession);
+            let decrypted = null;
+            try {
+                decrypted = await E2E.decryptMessage(payload, privateKeyObj, false);
+            } catch (e) {
+                try {
+                    decrypted = await E2E.decryptMessage(payload, privateKeyObj, true);
+                } catch (e2) {
+                    console.error("Failed to decrypt reply body", e2);
+                }
+            }
+
+            if (decrypted) {
+                bodyInput.value = prefix + decrypted.body;
+                if (subjectInput && subjectInput.value.includes("[Zašifrovaná zpráva]")) {
+                    subjectInput.value = subjectInput.value.replace("[Zašifrovaná zpráva]", decrypted.subject);
+                }
+            }
+        } catch (err) {
+            console.error("Failed to decrypt prefilled reply", err);
+        }
+    });
+
+    if (sessionStorage.getItem("decryptedPrivateKey")) {
+        document.dispatchEvent(new CustomEvent("e2e-ready"));
+    }
 });
 </script>
 }

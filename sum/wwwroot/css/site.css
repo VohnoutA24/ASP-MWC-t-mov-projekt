@@ -4214,4 +4214,18 @@ body.theme-transitioning * {
     background: var(--border-light);
 }
 
+/* Dark mode overrides for Chat Pane */
+[data-theme="dark"] .chat-messages-container {
+    background: var(--bg-secondary) !important; /* Deeper slate background for messages container */
+}
+
+[data-theme="dark"] .chat-message-bubble.incoming {
+    background: var(--bg-card) !important; /* Lighter slate bubble background */
+    border-color: var(--border) !important; /* Subtle border outline */
+}
+
+[data-theme="dark"] .chat-message-bubble.incoming .chat-message-meta {
+    color: var(--text-muted) !important;
+}
+
 
