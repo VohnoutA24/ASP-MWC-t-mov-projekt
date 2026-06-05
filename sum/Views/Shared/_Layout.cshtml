@@ -240,6 +240,189 @@
         <script>
             window.userEmail = "@User.FindFirst(ClaimTypes.Email)?.Value";
         </script>
+
+        <!-- Mailbox Help Info Modal -->
+        <div id="mailboxInfoModal" class="info-modal-overlay" style="display: none;">
+            <div class="info-modal-card">
+                <div class="info-modal-header">
+                    <h2><i class="fas fa-circle-info"></i> Nápověda k poště</h2>
+                    <button type="button" class="info-modal-close" onclick="closeMailboxInfoModal()"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="info-modal-body">
+                    <!-- Left Sidebar Nav -->
+                    <div class="info-nav">
+                        <button type="button" class="info-nav-btn active" onclick="switchInfoTab('e2e-section', this)">
+                            <i class="fas fa-shield-halved"></i> Šifrování E2E
+                        </button>
+                        <button type="button" class="info-nav-btn" onclick="switchInfoTab('features-section', this)">
+                            <i class="fas fa-envelope-open-text"></i> Funkce schránky
+                        </button>
+                        <button type="button" class="info-nav-btn" onclick="switchInfoTab('embedding-section', this)">
+                            <i class="fas fa-photo-film"></i> Přílohy a náhledy
+                        </button>
+                        <button type="button" class="info-nav-btn" onclick="switchInfoTab('faq-section', this)">
+                            <i class="fas fa-circle-question"></i> Časté dotazy
+                        </button>
+                    </div>
+
+                    <!-- Right Content Area -->
+                    <div class="info-content-area">
+                        <!-- Section 1: E2E -->
+                        <div id="e2e-section" class="info-section active">
+                            <h3>Koncové šifrování (End-to-End Encryption)</h3>
+                            <p>Tato aplikace využívá moderní zabezpečení, kdy jsou všechny vaše zprávy chráněny přímo ve vašem prohlížeči. Server plní pouze roli přenašeče zašifrovaných dat a nemá k nim přístup.</p>
+                            
+                            <div class="info-feature-card">
+                                <div class="info-feature-icon"><i class="fas fa-lock"></i></div>
+                                <div class="info-feature-text">
+                                    <h4>Bezpečné odeslání</h4>
+                                    <p>Před odesláním zprávy vyhledá váš prohlížeč veřejný klíč příjemce, zprávu zašifruje symetrickým AES-256 klíčem a ten poté zašifruje veřejným klíčem příjemce i vaším veřejným klíčem. Server obdrží pouze nečitelná data.</p>
+                                </div>
+                            </div>
+                            <div class="info-feature-card">
+                                <div class="info-feature-icon"><i class="fas fa-key"></i></div>
+                                <div class="info-feature-text">
+                                    <h4>Dešifrování na zařízení</h4>
+                                    <p>Dešifrování probíhá lokálně ve vašem počítači nebo telefonu pomocí vašeho soukromého klíče, který je v zašifrované podobě uložen na serveru a k jehož odemčení je vyžadováno vaše přihlašovací heslo.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-warning" style="margin-top: 0.5rem; font-size: 0.85rem;">
+                                <i class="fas fa-exclamation-triangle"></i> <strong>DŮLEŽITÉ:</strong> Pokud zapomenete své heslo, nikdo (ani administrátor) nebude schopen obnovit vaše dřívější šifrované zprávy, protože váš soukromý klíč je zašifrován právě tímto heslem.
+                            </div>
+                        </div>
+
+                        <!-- Section 2: Features -->
+                        <div id="features-section" class="info-section">
+                            <h3>Funkce školní schránky</h3>
+                            <p>Školní pošta vám umožňuje komunikovat s učiteli i ostatními studenty v bezpečném prostředí.</p>
+                            
+                            <div class="info-feature-card">
+                                <div class="info-feature-icon"><i class="fas fa-inbox"></i></div>
+                                <div class="info-feature-text">
+                                    <h4>Doručená a odeslaná pošta</h4>
+                                    <p>V Doručené poště naleznete všechny příchozí e-maily. Nové (nepřečtené) zprávy jsou zvýrazněny růžovým bodem. V Odeslané poště najdete historii vámi napsaných zpráv.</p>
+                                </div>
+                            </div>
+                            <div class="info-feature-card">
+                                <div class="info-feature-icon"><i class="fas fa-trash-alt"></i></div>
+                                <div class="info-feature-text">
+                                    <h4>Automatický koš a mazání</h4>
+                                    <p>Zprávy přesunuté do Koše jsou po dobu 15 dnů chráněny před trvalým smazáním a můžete je obnovit. Po 15 dnech jsou automaticky a nenávratně odstraněny.</p>
+                                </div>
+                            </div>
+                            <div class="info-feature-card">
+                                <div class="info-feature-icon"><i class="fas fa-list-check"></i></div>
+                                <div class="info-feature-text">
+                                    <h4>Hromadná správa</h4>
+                                    <p>Označením více zpráv pomocí zaškrtávacích políček na levé straně můžete provádět hromadné akce, jako je smazání nebo obnova více zpráv najednou.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 3: Previews and Attachments -->
+                        <div id="embedding-section" class="info-section">
+                            <h3>Bezpečné přílohy a náhledy</h3>
+                            <p>Můžete bezpečně posílat přílohy (obrázky, videa, PDF a další) do velikosti 25 MB. Všechny soubory jsou před nahráním zašifrovány.</p>
+                            
+                            <div class="info-feature-card">
+                                <div class="info-feature-icon"><i class="fas fa-file-shield"></i></div>
+                                <div class="info-feature-text">
+                                    <h4>Šifrované ukládání</h4>
+                                    <p>Na server se odesílá pouze zašifrovaný proud dat a název souboru. Server nezná obsah souboru ani jeho skutečný název.</p>
+                                </div>
+                            </div>
+                            <div class="info-feature-card">
+                                <div class="info-feature-icon"><i class="fas fa-image"></i></div>
+                                <div class="info-feature-text">
+                                    <h4>Zobrazení náhledů (Embedding)</h4>
+                                    <p>U obrázků a video souborů provede prohlížeč stažení zašifrovaného souboru na pozadí, dešifruje jej pomocí klíče zprávy a vytvoří bezpečný náhled přímo v detailu zprávy bez jakéhokoliv vystavení souboru serveru.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 4: FAQ -->
+                        <div id="faq-section" class="info-section">
+                            <h3>Časté dotazy (FAQ)</h3>
+                            
+                            <div class="faq-item">
+                                <button type="button" class="faq-question" onclick="toggleFaq(this)">
+                                    Může si správce nebo ředitel přečíst mé zprávy? <i class="fas fa-chevron-down"></i>
+                                </button>
+                                <div class="faq-answer">
+                                    Ne. Veškeré dešifrování probíhá výhradně ve vašem prohlížeči. V databázi a na serveru jsou uloženy pouze zašifrované texty, které bez vašeho soukromého klíče (který administrátor nezná a nemá k němu heslo) nelze přečíst.
+                                </div>
+                            </div>
+
+                            <div class="faq-item">
+                                <button type="button" class="faq-question" onclick="toggleFaq(this)">
+                                    Proč po mně systém občas chce heslo pro odemčení schránky? <i class="fas fa-chevron-down"></i>
+                                </button>
+                                <div class="faq-answer">
+                                    Váš dešifrovaný soukromý klíč se ukládá pouze do dočasné paměti karty prohlížeče (`sessionStorage`), aby byl maximálně chráněn. Pokud zavřete kartu, prohlížeč nebo se přihlásíte na jiném zařízení, musíte klíč zadáním hesla znovu dešifrovat.
+                                </div>
+                            </div>
+
+                            <div class="faq-item">
+                                <button type="button" class="faq-question" onclick="toggleFaq(this)">
+                                    Co se stane, když změním své přihlašovací heslo? <i class="fas fa-chevron-down"></i>
+                                </button>
+                                <div class="faq-answer">
+                                    Momentálně v systému není změna hesla přímo uživatelsky dostupná. Pokud bude v budoucnu přidána, váš soukromý klíč bude před změnou hesla automaticky dešifrován starým heslem a znovu zašifrován heslem novým, aby nedošlo ke ztrátě přístupu ke zprávám.
+                                </div>
+                            </div>
+
+                            <div class="faq-item">
+                                <button type="button" class="faq-question" onclick="toggleFaq(this)">
+                                    Mohu poslat šifrovanou zprávu někomu, kdo ještě poštu neotevřel? <i class="fas fa-chevron-down"></i>
+                                </button>
+                                <div class="faq-answer">
+                                    Při prvním otevření pošty si každý uživatel vygeneruje své šifrovací klíče. Pokud uživatel ještě poštu nikdy nenavštívil, nemá vytvořený veřejný klíč a systém vás na to při pokusu o odeslání zprávy upozorní. Jakmile daný uživatel sekci Pošta alespoň jednou navštíví, klíče se mu automaticky vytvoří a bude možné mu psát.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function closeMailboxInfoModal() {
+                document.getElementById("mailboxInfoModal").style.display = "none";
+            }
+
+            function switchInfoTab(sectionId, btn) {
+                const sections = document.querySelectorAll(".info-section");
+                sections.forEach(s => s.classList.remove("active"));
+                document.getElementById(sectionId).classList.add("active");
+
+                const buttons = document.querySelectorAll(".info-nav-btn");
+                buttons.forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+            }
+
+            function toggleFaq(btn) {
+                const answer = btn.nextElementSibling;
+                btn.classList.toggle("active");
+                answer.classList.toggle("open");
+            }
+
+            document.addEventListener("click", function (event) {
+                const modal = document.getElementById("mailboxInfoModal");
+                if (modal && modal.style.display === "flex") {
+                    const card = modal.querySelector(".info-modal-card");
+                    const isClickInside = card.contains(event.target) || event.target.id === "mailboxInfoBtn" || event.target.closest("#mailboxInfoBtn");
+                    if (!isClickInside) {
+                        modal.style.display = "none";
+                    }
+                }
+                
+                // Toggle info modal visibility from any help button click
+                if (event.target && (event.target.id === "mailboxInfoBtn" || event.target.closest("#mailboxInfoBtn"))) {
+                    if (modal) modal.style.display = "flex";
+                }
+            });
+        </script>
     }
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

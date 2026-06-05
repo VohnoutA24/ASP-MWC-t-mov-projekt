@@ -85,22 +85,27 @@
                             <label for="selectAllCheckbox" style="font-size: 0.88rem; cursor: pointer; color: var(--text-secondary); user-select: none; font-weight: 600;">Vybrat vše</label>
                             <span id="selectedCountText" style="font-size: 0.88rem; font-weight: 600; color: var(--primary); display: none; margin-left: 0.5rem;">(vybráno: 0)</span>
                         </div>
-                        <div class="bulk-buttons" id="bulkButtons" style="display: flex; gap: 0.5rem; visibility: hidden; opacity: 0; transition: all 0.2s ease;">
-                            @if (activeTab == "trash")
-                            {
-                                <button type="button" id="bulkRestoreBtn" class="btn-bulk-action restore" title="Obnovit vybrané">
-                                    <i class="fas fa-undo"></i> Obnovit vybrané
-                                </button>
-                                <button type="button" id="bulkDeletePermBtn" class="btn-bulk-action delete" title="Smazat trvale vybrané">
-                                    <i class="fas fa-trash-alt"></i> Smazat trvale
-                                </button>
-                            }
-                            else
-                            {
-                                <button type="button" id="bulkDeleteBtn" class="btn-bulk-action delete" title="Přesunout vybrané do koše">
-                                    <i class="fas fa-trash-alt"></i> Smazat vybrané
-                                </button>
-                            }
+                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            <div class="bulk-buttons" id="bulkButtons" style="display: flex; gap: 0.5rem; visibility: hidden; opacity: 0; transition: all 0.2s ease;">
+                                @if (activeTab == "trash")
+                                {
+                                    <button type="button" id="bulkRestoreBtn" class="btn-bulk-action restore" title="Obnovit vybrané">
+                                        <i class="fas fa-undo"></i> Obnovit vybrané
+                                    </button>
+                                    <button type="button" id="bulkDeletePermBtn" class="btn-bulk-action delete" title="Smazat trvale vybrané">
+                                        <i class="fas fa-trash-alt"></i> Smazat trvale
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="button" id="bulkDeleteBtn" class="btn-bulk-action delete" title="Přesunout vybrané do koše">
+                                        <i class="fas fa-trash-alt"></i> Smazat vybrané
+                                    </button>
+                                }
+                            </div>
+                            <button type="button" class="btn-info-custom" id="mailboxInfoBtn" title="Nápověda k poště">
+                                <i class="fas fa-circle-info"></i> Nápověda
+                            </button>
                         </div>
                     </div>
 
