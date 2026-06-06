@@ -69,12 +69,12 @@
                 <div class="messages-list">
                     <!-- Selection Toolbar -->
                     <div class="messages-toolbar animate-in">
-                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <div class="toolbar-left">
                             <input type="checkbox" id="selectAllCheckbox" style="transform: scale(1.15); cursor: pointer;" />
                             <label for="selectAllCheckbox" style="font-size: 0.88rem; cursor: pointer; color: var(--text-secondary); user-select: none; font-weight: 600;">Vybrat vše</label>
                             <span id="selectedCountText" style="font-size: 0.88rem; font-weight: 600; color: var(--primary); display: none; margin-left: 0.5rem;">(vybráno: 0)</span>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <div class="toolbar-right">
                             <div class="bulk-buttons" id="bulkButtons" style="display: flex; gap: 0.5rem; visibility: hidden; opacity: 0; transition: all 0.2s ease;">
                                 <button type="button" id="bulkDeleteBtn" class="btn-bulk-action delete" title="Přesunout vybrané do koše">
                                     <i class="fas fa-trash-alt"></i> Smazat vybrané
@@ -95,6 +95,9 @@
                              data-is-e2e="@(isE2e ? "true" : "false")"
                              data-e2e-payload="@(isE2e ? msg.Body : "")"
                              data-is-sender="true">
+                            <div class="msg-selector" onclick="event.stopPropagation();">
+                                <input type="checkbox" class="msg-select-checkbox" data-id="@msg.SecureId" style="cursor: pointer; transform: scale(1.25);" />
+                            </div>
                             <a asp-action="Read" asp-route-id="@msg.SecureId" class="msg-row-link">
                                 <div class="msg-avatar sent-avatar">
                                     @if (msg.Sender?.ProfilePicture != null)
@@ -112,7 +115,6 @@
                                         <span class="msg-date">@msg.SentAt.ToCzechTime().ToString("dd.MM.yyyy HH:mm")</span>
                                     </div>
                                     <div class="msg-subject" style="display: flex; align-items: center; gap: 0.5rem;">
-                                        <input type="checkbox" class="msg-select-checkbox" data-id="@msg.SecureId" onclick="event.stopPropagation();" style="cursor: pointer; transform: scale(1.1); margin-right: 0.25rem;" />
                                         <span class="subject-text">@(isE2e ? "Dešifrování..." : msg.Subject)</span>
                                         @if (isE2e)
                                         {

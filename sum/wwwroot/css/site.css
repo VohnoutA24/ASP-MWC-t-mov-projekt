@@ -4269,7 +4269,7 @@ body.theme-transitioning * {
 }
 
 /* Chat bubble popping animations */
-.chat-message-bubble {
+.chat-message-bubble.pop-animate {
     animation: popIn 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
@@ -4352,4 +4352,286 @@ body.theme-transitioning * {
     left: 0;
 }
 
+/* ==================================
+   RESPONSIVE MOBILE STYLING FIXES (PHONE COMPATIBILITY)
+   ================================== */
 
+@media (max-width: 768px) {
+    /* Message Sidebar / Nav modifications */
+    .messages-sidebar {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+        width: 100%;
+    }
+
+    .messages-nav {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        background: var(--bg-secondary);
+        padding: 0.35rem;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border-light);
+        width: 100%;
+    }
+
+    .msg-nav-item {
+        flex: 1;
+        min-width: 80px;
+        justify-content: center;
+        padding: 0.5rem 0.4rem;
+        border-radius: var(--radius-sm);
+        white-space: nowrap;
+    }
+
+    .msg-nav-divider {
+        display: none !important; /* Hide vertical/horizontal dividers in row view */
+    }
+
+    /* Responsive Chat Sliding Panels */
+    .chat-container {
+        display: flex !important;
+        flex-direction: row !important;
+        width: 100%;
+        height: calc(100vh - var(--nav-height) - 150px) !important;
+        min-height: 480px !important;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .chat-contacts-pane {
+        width: 100% !important;
+        flex-shrink: 0 !important;
+        transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        border-right: none !important;
+        height: 100%;
+    }
+
+    .chat-pane {
+        width: 100% !important;
+        flex-shrink: 0 !important;
+        transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        position: absolute !important;
+        top: 0;
+        left: 100%;
+        height: 100%;
+        display: flex !important;
+        flex-direction: column;
+        background: var(--bg-primary);
+    }
+
+    /* Toggle Slide on Active Mobile Chat */
+    .chat-container.chat-active-mobile .chat-contacts-pane {
+        transform: translateX(-100%);
+    }
+
+    .chat-container.chat-active-mobile .chat-pane {
+        transform: translateX(-100%);
+    }
+
+    /* Show back button on mobile */
+    .btn-chat-back-mobile {
+        display: inline-flex !important;
+    }
+
+    .chat-header {
+        padding: 0.75rem 1rem !important;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    /* Adjust chat messages padding */
+    .chat-messages-container {
+        padding: 1rem 0.75rem !important;
+    }
+
+    .chat-message-bubble {
+        max-width: 85% !important; /* Give more space for bubble text on narrow screens */
+    }
+
+    /* Layout Toolbar spacing on mobile */
+    .messages-toolbar {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 0.75rem;
+        padding: 0.75rem !important;
+    }
+
+    .messages-toolbar > div {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .bulk-buttons {
+        gap: 0.25rem !important;
+    }
+
+    .btn-bulk-action {
+        padding: 0.35rem 0.65rem !important;
+        font-size: 0.8rem !important;
+    }
+}
+
+@media (max-width: 576px) {
+    /* Hide message list avatar on small phones to save horizontal space */
+    .message-row .msg-avatar {
+        display: none !important;
+    }
+
+    .msg-row-link {
+        padding: 0.75rem 0.5rem !important;
+        gap: 0.5rem !important;
+    }
+
+    .msg-sender {
+        font-size: 0.85rem !important;
+    }
+
+    .msg-date {
+        font-size: 0.7rem !important;
+    }
+
+    .msg-subject {
+        font-size: 0.82rem !important;
+    }
+
+    .msg-preview {
+        font-size: 0.75rem !important;
+    }
+
+    /* Shrink padding inside cards to fit small screens */
+    .compose-card, .read-card {
+        padding: 1rem !important;
+        border-radius: var(--radius-md) !important;
+    }
+
+    .messages-header h1 {
+        font-size: 1.5rem !important;
+    }
+
+    .messages-header p {
+        font-size: 0.85rem;
+    }
+}
+
+/* ==================================
+   MOBILE USABILITY & SCROLL ENHANCEMENTS
+   ================================== */
+
+/* Email badges and subject wrapping enhancements */
+.badge-e2e,
+.badge-server-enc,
+.chat-badge-e2e {
+    flex-shrink: 0 !important;
+}
+
+.subject-text {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Checkbox selector wrapper outside link */
+.msg-selector {
+    padding-left: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* Toolbar wrappers class-based display */
+.toolbar-left,
+.toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+@media (max-width: 768px) {
+    .toolbar-left,
+    .toolbar-right {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    /* Hide page headers & sidebar when chat is active */
+    .messages-page.chat-active-mobile .messages-header {
+        display: none !important;
+    }
+    
+    .messages-page.chat-active-mobile .messages-sidebar {
+        display: none !important;
+    }
+    
+    /* Expand container to occupy the full page height and width */
+    .messages-page.chat-active-mobile {
+        padding: calc(var(--nav-height) + 10px) 0.5rem 10px !important;
+    }
+    
+    .messages-page.chat-active-mobile .chat-container {
+        height: calc(100vh - var(--nav-height) - 20px) !important;
+        min-height: 0 !important;
+        border-radius: var(--radius-md) !important;
+    }
+    
+    /* Hide tip under active chat on mobile */
+    .chat-input-tip {
+        display: none !important;
+    }
+    
+    .chat-input-wrapper {
+        padding: 0.6rem 0.85rem !important;
+    }
+    
+    /* Active chat header security text simplification */
+    .chat-header .chat-badge-e2e .badge-text {
+        display: none !important;
+    }
+    
+    .chat-header .chat-badge-e2e {
+        padding: 0.35rem !important;
+        border-radius: 50% !important;
+        width: 28px !important;
+        height: 28px !important;
+        justify-content: center !important;
+    }
+}
+
+@media (max-width: 576px) {
+    /* Compose Actions & Read Actions stacking */
+    .compose-actions,
+    .read-actions {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 0.5rem !important;
+    }
+    
+    .compose-actions .btn-send,
+    .compose-actions .btn-cancel,
+    .read-actions form,
+    .read-actions a,
+    .read-actions button {
+        width: 100% !important;
+        display: inline-flex !important;
+        justify-content: center !important;
+        text-align: center !important;
+    }
+
+    .read-actions form {
+        display: block !important;
+    }
+    .read-actions form button {
+        display: inline-flex !important;
+    }
+
+    /* Small phone margin adjustments for checkbox selector */
+    .msg-selector {
+        padding-left: 0.75rem;
+    }
+}
