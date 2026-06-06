@@ -931,10 +931,26 @@
                         // 4. Dispatch custom event for Chat page to handle individual contact badge updates
                         document.dispatchEvent(new CustomEvent("notifications-updated", { detail: data }));
 
+                        // 5. Update browser tab title with unread notifications count
+                        const totalUnread = data.mailCount + data.chatTotalCount;
+                        let currentTitle = document.title;
+                        currentTitle = currentTitle.replace(/^\(\d+\)\s*/, "");
+                        if (totalUnread > 0) {
+                            document.title = `(${totalUnread}) ${currentTitle}`;
+                        } else {
+                            document.title = currentTitle;
+                        }
+
                     } catch (e) {
                         console.error("Failed to poll notifications", e);
                     }
                 }
+
+                // Expose globally so active pages can force an instant refresh
+                window.updateNotifications = pollNotifications;
+
+                // Run once immediately on load
+                pollNotifications();
 
                 // Poll every 6 seconds
                 setInterval(pollNotifications, 6000);

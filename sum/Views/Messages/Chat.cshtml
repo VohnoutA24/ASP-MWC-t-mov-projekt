@@ -401,6 +401,11 @@
         // Start Live Updates Polling
         if (pollInterval) clearInterval(pollInterval);
         pollInterval = setInterval(loadMessages, 5000);
+
+        // Immediately update global notification badges (clears active chat count from header/tab)
+        if (typeof window.updateNotifications === "function") {
+            window.updateNotifications();
+        }
     }
 
     async function loadMessages() {
