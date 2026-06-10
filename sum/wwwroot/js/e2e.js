@@ -480,7 +480,7 @@ const E2E = (function () {
             div.innerHTML = `
                 <div class="e2e-modal-card">
                     <div class="e2e-modal-header" style="position: relative;">
-                        <button type="button" id="e2eCloseBtn" title="Zavřít" onclick="document.getElementById('e2eUnlockModal').style.display='none'" style="position: absolute; top: 0.75rem; right: 0.75rem; background: none; border: none; cursor: pointer; color: var(--text-muted, #94a3b8); font-size: 1.1rem; line-height: 1; padding: 0.2rem 0.4rem; border-radius: 4px; transition: color 0.15s, background 0.15s;" onmouseover="this.style.color='var(--primary,#c2185b)';this.style.background='rgba(194,24,91,0.08)'" onmouseout="this.style.color='var(--text-muted,#94a3b8)';this.style.background='none'" aria-label="Zavřít">
+                        <button type="button" id="e2eCloseBtn" title="Zavřít" onclick="window.location.href='/Home/Dashboard'" style="position: absolute; top: 0.75rem; right: 0.75rem; background: none; border: none; cursor: pointer; color: var(--text-muted, #94a3b8); font-size: 1.1rem; line-height: 1; padding: 0.2rem 0.4rem; border-radius: 4px; transition: color 0.15s, background 0.15s;" onmouseover="this.style.color='var(--primary,#c2185b)';this.style.background='rgba(194,24,91,0.08)'" onmouseout="this.style.color='var(--text-muted,#94a3b8)';this.style.background='none'" aria-label="Zavřít">
                             <i class="fas fa-times"></i>
                         </button>
                         <i class="fas fa-key e2e-key-icon"></i>
@@ -525,10 +525,10 @@ const E2E = (function () {
         passwordInput.value = "";
         passwordInput.focus();
 
-        // Close on Escape key
+        // Close on Escape key — redirect away from messages
         modal.onkeydown = function(e) {
             if (e.key === "Escape") {
-                modal.style.display = "none";
+                window.location.href = '/Home/Dashboard';
             }
         };
 
