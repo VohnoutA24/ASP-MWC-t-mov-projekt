@@ -479,7 +479,10 @@ const E2E = (function () {
             div.className = "e2e-modal-overlay";
             div.innerHTML = `
                 <div class="e2e-modal-card">
-                    <div class="e2e-modal-header">
+                    <div class="e2e-modal-header" style="position: relative;">
+                        <button type="button" id="e2eCloseBtn" title="Zavřít" onclick="document.getElementById('e2eUnlockModal').style.display='none'" style="position: absolute; top: 0.75rem; right: 0.75rem; background: none; border: none; cursor: pointer; color: var(--text-muted, #94a3b8); font-size: 1.1rem; line-height: 1; padding: 0.2rem 0.4rem; border-radius: 4px; transition: color 0.15s, background 0.15s;" onmouseover="this.style.color='var(--primary,#c2185b)';this.style.background='rgba(194,24,91,0.08)'" onmouseout="this.style.color='var(--text-muted,#94a3b8)';this.style.background='none'" aria-label="Zavřít">
+                            <i class="fas fa-times"></i>
+                        </button>
                         <i class="fas fa-key e2e-key-icon"></i>
                         <h3 id="e2eModalTitle">Odemčení zabezpečené schránky</h3>
                         <p id="e2eModalDescription">Pro odemčení vašich end-to-end šifrovaných zpráv zadejte své heslo.</p>
@@ -519,7 +522,15 @@ const E2E = (function () {
         }
 
         modal.style.display = "flex";
+        passwordInput.value = "";
         passwordInput.focus();
+
+        // Close on Escape key
+        modal.onkeydown = function(e) {
+            if (e.key === "Escape") {
+                modal.style.display = "none";
+            }
+        };
 
         // Listen for Enter key
         passwordInput.onkeydown = function(e) {
