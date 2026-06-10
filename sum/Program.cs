@@ -315,30 +315,42 @@ using (var scope = app.Services.CreateScope())
             await db.SaveChangesAsync();
         }
 
-        // Seed Teacher Account
-        var teacherEmail = "ucitel@zschvalk.cz";
-        var teacherExists = await db.Users.AnyAsync(u => u.Email == teacherEmail);
-        if (!teacherExists)
+        // Seed Teacher Accounts
+        var teachersToSeed = new[]
         {
-            string hashedPassword;
-            using (var sha256 = System.Security.Cryptography.SHA256.Create())
-            {
-                var hashBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes("Ucitel123!"));
-                hashedPassword = Convert.ToBase64String(hashBytes);
-            }
+            new { Username = "novakj",    Email = "novakj@zschvalk.ucitel",    FullName = "Mgr. Jan Novák",        Password = "Ucitel123!" },
+            new { Username = "svobodak",  Email = "svobodak@zschvalk.ucitel",  FullName = "Mgr. Kateřina Svobodová", Password = "Ucitel123!" },
+            new { Username = "dvoracekm", Email = "dvoracekm@zschvalk.ucitel", FullName = "Mgr. Martin Dvořáček",  Password = "Ucitel123!" },
+            new { Username = "horakova",  Email = "horakova@zschvalk.ucitel",  FullName = "Mgr. Alena Horáková",   Password = "Ucitel123!" },
+            new { Username = "cernyp",    Email = "cernyp@zschvalk.ucitel",    FullName = "Mgr. Pavel Černý",      Password = "Ucitel123!" },
+            // Legacy account kept for backwards compatibility
+            new { Username = "ucitel",    Email = "ucitel@zschvalk.cz",        FullName = "Mgr. Jan Novák",        Password = "Ucitel123!" },
+        };
 
-            var teacher = new User
+        foreach (var t in teachersToSeed)
+        {
+            var exists = await db.Users.AnyAsync(u => u.Email == t.Email);
+            if (!exists)
             {
-                Username = "ucitel",
-                Email = teacherEmail,
-                FullName = "Mgr. Jan Novák",
-                PasswordHash = hashedPassword,
-                Role = "Teacher",
-                CreatedAt = DateTime.UtcNow
-            };
-            db.Users.Add(teacher);
-            await db.SaveChangesAsync();
+                string hashedPassword;
+                using (var sha256 = System.Security.Cryptography.SHA256.Create())
+                {
+                    var hashBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(t.Password));
+                    hashedPassword = Convert.ToBase64String(hashBytes);
+                }
+
+                db.Users.Add(new User
+                {
+                    Username  = t.Username,
+                    Email     = t.Email,
+                    FullName  = t.FullName,
+                    PasswordHash = hashedPassword,
+                    Role      = "Teacher",
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
         }
+        await db.SaveChangesAsync();
     }
     catch (Exception ex)
     {
