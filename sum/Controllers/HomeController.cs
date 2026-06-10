@@ -51,14 +51,29 @@ namespace sum.Controllers
             }
             else
             {
-                // Deterministic per-user randomization for grade average and attendance
+                // Deterministic per-user randomization for grades
                 var rng = new Random(userId * 31337);
-                double sum = 0;
-                for (int i = 0; i < 6; i++)
-                    sum += rng.NextDouble();
-                double normalized = sum / 6.0;
-                double gradeAvg = 1.0 + (normalized * 0.8 + 0.2) * 3.5;
-                gradeAvg = Math.Round(Math.Clamp(gradeAvg, 1.0, 4.5), 2);
+
+                // Per-subject grades (1–5 scale, Czech school system)
+                var subjects = new[]
+                {
+                    "Matematika", "Český jazyk", "Anglický jazyk", "Fyzika",
+                    "Chemie", "Dějepis", "Zeměpis", "Přírodopis",
+                    "Informatika", "Občanská výchova"
+                };
+
+                var subjectGrades = subjects.Select(s =>
+                {
+                    // Each subject gets 3–5 individual grades
+                    var count = rng.Next(3, 6);
+                    var grades = Enumerable.Range(0, count)
+                        .Select(_ => rng.Next(1, 6))
+                        .ToList();
+                    var avg = Math.Round(grades.Average(), 1);
+                    return new { Subject = s, Grades = grades, Average = avg };
+                }).ToList();
+
+                var gradeAvg = Math.Round(subjectGrades.Average(sg => sg.Average), 2);
 
                 var completedHomeworkIds = await _db.HomeworkCompletions
                     .Where(hc => hc.StudentId == userId)
@@ -74,6 +89,12 @@ namespace sum.Controllers
                     .ToListAsync();
 
                 ViewBag.GradeAverage = gradeAvg;
+                ViewBag.SubjectGrades = subjectGrades.Select(sg => new
+                {
+                    sg.Subject,
+                    sg.Grades,
+                    sg.Average
+                }).ToList<dynamic>();
                 ViewBag.PendingHomework = pendingHomeworksCount;
                 ViewBag.UnreadMessages = unreadMessagesCount;
                 ViewBag.CompletedHomeworkIds = completedHomeworkIds;

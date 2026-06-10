@@ -208,6 +208,187 @@
             <span>Jídelníček</span>
         </a>
     </div>
+
+    @{
+        var subjectGrades = ViewBag.SubjectGrades as List<dynamic>;
+        var subjectIcons = new Dictionary<string, (string icon, string color, string bg)>
+        {
+            ["Matematika"]        = ("fa-square-root-variable", "#1e40af", "#dbeafe"),
+            ["Český jazyk"]       = ("fa-book-open",            "#7c3aed", "#ede9fe"),
+            ["Anglický jazyk"]    = ("fa-language",             "#0f766e", "#ccfbf1"),
+            ["Fyzika"]            = ("fa-atom",                 "#b45309", "#fef3c7"),
+            ["Chemie"]            = ("fa-flask",                "#0369a1", "#e0f2fe"),
+            ["Dějepis"]           = ("fa-landmark",             "#92400e", "#fef3c7"),
+            ["Zeměpis"]           = ("fa-earth-europe",         "#065f46", "#d1fae5"),
+            ["Přírodopis"]        = ("fa-leaf",                 "#16a34a", "#dcfce7"),
+            ["Informatika"]       = ("fa-laptop-code",          "#5b21b6", "#ede9fe"),
+            ["Občanská výchova"]  = ("fa-users",                "#be185d", "#fce7f3"),
+        };
+    }
+
+    @if (subjectGrades != null && subjectGrades.Count > 0)
+    {
+        <div class="grades-section animate-in" style="margin-top: 2rem; margin-bottom: 2rem;">
+            <div class="schedule-card" style="margin-bottom: 0;">
+                <h2 style="margin-bottom: 1.5rem;">
+                    <i class="fas fa-graduation-cap" style="color: var(--primary);"></i> Přehled známek podle předmětů
+                </h2>
+                <div class="grades-grid">
+                    @foreach (var sg in subjectGrades)
+                    {
+                        string subject = sg.Subject;
+                        double avg = (double)sg.Average;
+                        var grades = sg.Grades as IEnumerable<int> ?? new List<int>();
+
+                        var (icon, color, bg) = subjectIcons.ContainsKey(subject)
+                            ? subjectIcons[subject]
+                            : ("fa-book", "#64748b", "#f1f5f9");
+
+                        // Map average to colour
+                        string avgColor = avg <= 1.5 ? "#16a34a"
+                                        : avg <= 2.5 ? "#0369a1"
+                                        : avg <= 3.5 ? "#b45309"
+                                        : "#dc2626";
+
+                        // Progress bar width: grade 1 = 100%, grade 5 = 10%
+                        double barPct = Math.Max(10, (5.0 - avg) / 4.0 * 100.0);
+
+                        <div class="grade-subject-card">
+                            <div class="grade-subject-header">
+                                <div class="grade-subject-icon" style="background: @bg; color: @color;">
+                                    <i class="fas @icon"></i>
+                                </div>
+                                <div class="grade-subject-info">
+                                    <div class="grade-subject-name">@subject</div>
+                                    <div class="grade-pills">
+                                        @foreach (var g in grades)
+                                        {
+                                            string pillColor = g == 1 ? "#16a34a"
+                                                             : g == 2 ? "#0369a1"
+                                                             : g == 3 ? "#b45309"
+                                                             : g == 4 ? "#d97706"
+                                                             : "#dc2626";
+                                            <span class="grade-pill" style="background: @(pillColor)18; color: @pillColor; border: 1px solid @(pillColor)40;">@g</span>
+                                        }
+                                    </div>
+                                </div>
+                                <div class="grade-avg-badge" style="color: @avgColor; background: @(avgColor)15; border: 2px solid @(avgColor)35;">
+                                    @avg.ToString("0.0")
+                                </div>
+                            </div>
+                            <div class="grade-progress-wrap">
+                                <div class="grade-progress-bar" style="width: @(barPct.ToString("0", System.Globalization.CultureInfo.InvariantCulture))%; background: linear-gradient(90deg, @color 0%, @avgColor 100%);"></div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <style>
+            .grades-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                gap: 1rem;
+            }
+
+            .grade-subject-card {
+                background: var(--bg-secondary);
+                border: 1px solid var(--border-light);
+                border-radius: var(--radius-md);
+                padding: 1rem 1.1rem 0.85rem;
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+                cursor: default;
+            }
+
+            .grade-subject-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+            }
+
+            .grade-subject-header {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                margin-bottom: 0.75rem;
+            }
+
+            .grade-subject-icon {
+                width: 38px;
+                height: 38px;
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1rem;
+                flex-shrink: 0;
+            }
+
+            .grade-subject-info {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .grade-subject-name {
+                font-weight: 700;
+                font-size: 0.88rem;
+                color: var(--text-primary);
+                margin-bottom: 0.3rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .grade-pills {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.25rem;
+            }
+
+            .grade-pill {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 22px;
+                height: 22px;
+                border-radius: 6px;
+                font-size: 0.78rem;
+                font-weight: 800;
+                line-height: 1;
+            }
+
+            .grade-avg-badge {
+                font-size: 1.3rem;
+                font-weight: 900;
+                border-radius: 10px;
+                padding: 0.2rem 0.55rem;
+                flex-shrink: 0;
+                letter-spacing: -0.02em;
+            }
+
+            .grade-progress-wrap {
+                height: 5px;
+                background: var(--border-light);
+                border-radius: 99px;
+                overflow: hidden;
+            }
+
+            .grade-progress-bar {
+                height: 100%;
+                border-radius: 99px;
+                transition: width 1s cubic-bezier(0.4,0,0.2,1);
+            }
+
+            [data-theme="dark"] .grade-subject-card {
+                background: var(--bg-tertiary);
+                border-color: var(--border);
+            }
+
+            [data-theme="dark"] .grade-subject-card:hover {
+                box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+            }
+        </style>
+    }
 </div>
 
 @section Scripts {
