@@ -13,7 +13,11 @@
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.6" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
+<<<<<<< HEAD
     <PackageReference Include="SixLabors.ImageSharp" Version="2.1.13" />
+=======
+    <PackageReference Include="SixLabors.ImageSharp" Version="2.1.11" />
+>>>>>>> 15a7833a61e6f0f59f4dc70a05c1593959b47023
   </ItemGroup>
 
 </Project>
