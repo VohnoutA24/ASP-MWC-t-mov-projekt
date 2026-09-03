@@ -489,6 +489,57 @@
         color: var(--primary);
     }
 
+    /* Dark Mode Overrides for Contacts Page */
+    [data-theme="dark"] .contacts-header p,
+    [data-theme="dark"] .contacts-header .text-muted,
+    [data-theme="dark"] .section-subtitle {
+        color: var(--text-secondary) !important;
+    }
+
+    [data-theme="dark"] .contact-card {
+        background: var(--bg-card);
+        border-color: var(--border);
+    }
+
+    [data-theme="dark"] .card-header {
+        background: linear-gradient(135deg, rgba(244, 114, 182, 0.12) 0%, rgba(244, 114, 182, 0.20) 100%);
+        border-bottom-color: var(--border);
+    }
+
+    [data-theme="dark"] .card-header.director {
+        background: linear-gradient(135deg, rgba(234, 179, 8, 0.25) 0%, rgba(202, 138, 4, 0.35) 100%);
+    }
+
+    [data-theme="dark"] .card-header.director .header-info h3 {
+        color: #fef08a;
+    }
+
+    [data-theme="dark"] .card-header.director .position {
+        color: #fde047;
+    }
+
+    [data-theme="dark"] .card-header.deputy {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(37, 99, 235, 0.35) 100%);
+    }
+
+    [data-theme="dark"] .card-header.deputy .header-info h3 {
+        color: #bfdbfe;
+    }
+
+    [data-theme="dark"] .card-header.deputy .position {
+        color: #93c5fd;
+    }
+
+    [data-theme="dark"] .consultation,
+    [data-theme="dark"] .availability {
+        background: rgba(244, 114, 182, 0.1);
+    }
+
+    [data-theme="dark"] .contacts-info {
+        background: var(--bg-card);
+        border-color: var(--border);
+    }
+
     @@media (max-width: 768px) {
         .contacts-header h1 {
             font-size: 2rem;

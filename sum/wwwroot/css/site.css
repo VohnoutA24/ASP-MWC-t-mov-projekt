@@ -1797,7 +1797,7 @@ a:hover {
     --bg-hero: #0f172a;
     --text-primary: #f8fafc; /* Slate 50 */
     --text-secondary: #cbd5e1; /* Slate 300 */
-    --text-muted: #ffc0cb; /* Slate 500 */
+    --text-muted: #cbd5e1; /* Slate 300 - Light gray for readability */
 
     --border: #334155; /* Slate 700 */
     --border-light: #1e293b; /* Slate 800 */
@@ -1809,6 +1809,10 @@ a:hover {
     --primary-50: rgba(244, 114, 182, 0.08);
     --primary-100: rgba(244, 114, 182, 0.15);
     --primary-200: rgba(244, 114, 182, 0.25);
+}
+
+[data-theme="dark"] .text-muted {
+    color: var(--text-secondary) !important;
 }
 
 [data-theme="dark"] body {
