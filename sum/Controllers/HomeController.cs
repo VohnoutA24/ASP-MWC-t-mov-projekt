@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using sum.Data;
 using sum.Models;
+using sum.Services;
 using System.Diagnostics;
 
 namespace sum.Controllers
@@ -9,15 +10,23 @@ namespace sum.Controllers
     public class HomeController : Controller
     {
         private readonly AppDbContext _db;
+        private readonly ContactService _contactService;
 
         public HomeController(AppDbContext db)
         {
             _db = db;
+            _contactService = new ContactService();
         }
 
         public IActionResult Index()
         {
             return View();
+        }
+
+        public IActionResult Contacts()
+        {
+            var contactsViewModel = _contactService.GetAllContacts();
+            return View(contactsViewModel);
         }
 
         public async Task<IActionResult> Dashboard()

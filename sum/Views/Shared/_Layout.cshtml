@@ -93,6 +93,11 @@
                                 <i class="fas fa-utensils"></i> Jídelna
                             </a>
                         </li>
+                        <li>
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Contacts">
+                                <i class="fas fa-address-book"></i> Kontakty
+                            </a>
+                        </li>
                         @if (User.Identity?.IsAuthenticated == true)
                         {
                             <li>

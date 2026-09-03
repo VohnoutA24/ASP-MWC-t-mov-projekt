@@ -1,0 +1,510 @@
+@model sum.Models.ContactsViewModel
+
+@{
+    ViewData["Title"] = "Kontakty - Učitelé a Administrativa";
+}
+
+<div class="contacts-container">
+    <div class="contacts-header">
+        <h1><i class="fas fa-address-book"></i> Kontakty Školy</h1>
+        <p class="text-muted">Informace o učitelích a administrativě ZŠ Chvalkovice</p>
+    </div>
+
+    <!-- Teachers Section -->
+    <div class="contacts-section teachers-section">
+        <div class="section-header">
+            <h2><i class="fas fa-chalkboard-teacher"></i> Pedagogický Sbor</h2>
+            <p class="section-subtitle">@Model.Teachers.Count učitelů</p>
+        </div>
+
+        <div class="teachers-grid">
+            @foreach (var teacher in Model.Teachers)
+            {
+                <div class="contact-card teacher-card">
+                    <div class="card-header">
+                        <div class="avatar">
+                            @if (teacher.Photo != null)
+                            {
+                                <img src="data:image/jpeg;base64,@Convert.ToBase64String(teacher.Photo)" alt="@teacher.FullName" />
+                            }
+                            else
+                            {
+                                <div class="avatar-placeholder">
+                                    <i class="fas fa-user-tie"></i>
+                                </div>
+                            }
+                        </div>
+                        <div class="header-info">
+                            <h3>@teacher.FullName</h3>
+                            @if (!string.IsNullOrEmpty(teacher.Specialization))
+                            {
+                                <p class="specialization">@teacher.Specialization</p>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+                        <!-- Subjects -->
+                        @if (teacher.Subjects.Any())
+                        {
+                            <div class="contact-section">
+                                <label><i class="fas fa-book"></i> Předměty:</label>
+                                <div class="subjects-list">
+                                    @foreach (var subject in teacher.Subjects)
+                                    {
+                                        <span class="subject-badge">@subject</span>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Contact Info -->
+                        <div class="contact-info">
+                            @if (!string.IsNullOrEmpty(teacher.Email))
+                            {
+                                <div class="info-item">
+                                    <i class="fas fa-envelope"></i>
+                                    <a href="mailto:@teacher.Email">@teacher.Email</a>
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(teacher.Phone))
+                            {
+                                <div class="info-item">
+                                    <i class="fas fa-phone"></i>
+                                    <a href="tel:@teacher.Phone">@teacher.Phone</a>
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(teacher.Office))
+                            {
+                                <div class="info-item">
+                                    <i class="fas fa-door-open"></i>
+                                    Kabinet: <strong>@teacher.Office</strong>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Consultation Hours -->
+                        @if (!string.IsNullOrEmpty(teacher.ConsultationHours))
+                        {
+                            <div class="contact-section consultation">
+                                <label><i class="fas fa-clock"></i> Konzultační hodiny:</label>
+                                <p>@teacher.ConsultationHours</p>
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(teacher.Availability))
+                        {
+                            <div class="contact-section availability">
+                                <label><i class="fas fa-calendar"></i> Dostupnost:</label>
+                                <p>@teacher.Availability</p>
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(teacher.Description))
+                        {
+                            <div class="contact-section description">
+                                <p>@teacher.Description</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Administration Section -->
+    <div class="contacts-section admin-section">
+        <div class="section-header">
+            <h2><i class="fas fa-building"></i> Administrativa</h2>
+            <p class="section-subtitle">@Model.Administrators.Count zaměstnanců</p>
+        </div>
+
+        <div class="admin-grid">
+            @foreach (var admin in Model.Administrators)
+            {
+                <div class="contact-card admin-card">
+                    <div class="card-header @(admin.Position == "Ředitelka" ? "director" : admin.Position == "Zástupce ředitele" ? "deputy" : "")">
+                        <div class="avatar">
+                            @if (admin.Photo != null)
+                            {
+                                <img src="data:image/jpeg;base64,@Convert.ToBase64String(admin.Photo)" alt="@admin.FullName" />
+                            }
+                            else
+                            {
+                                <div class="avatar-placeholder">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                            }
+                        </div>
+                        <div class="header-info">
+                            <h3>@admin.FullName</h3>
+                            <p class="position">@admin.Position</p>
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+                        <!-- Contact Info -->
+                        <div class="contact-info">
+                            @if (!string.IsNullOrEmpty(admin.Email))
+                            {
+                                <div class="info-item">
+                                    <i class="fas fa-envelope"></i>
+                                    <a href="mailto:@admin.Email">@admin.Email</a>
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(admin.Phone))
+                            {
+                                <div class="info-item">
+                                    <i class="fas fa-phone"></i>
+                                    <a href="tel:@admin.Phone">@admin.Phone</a>
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(admin.Office))
+                            {
+                                <div class="info-item">
+                                    <i class="fas fa-door-open"></i>
+                                    Místnost: <strong>@admin.Office</strong>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Expertise -->
+                        @if (!string.IsNullOrEmpty(admin.Expertise))
+                        {
+                            <div class="contact-section">
+                                <label><i class="fas fa-briefcase"></i> Odbornost:</label>
+                                <p>@admin.Expertise</p>
+                            </div>
+                        }
+
+                        <!-- Consultation Hours -->
+                        @if (!string.IsNullOrEmpty(admin.ConsultationHours))
+                        {
+                            <div class="contact-section consultation">
+                                <label><i class="fas fa-clock"></i> Konzultační hodiny:</label>
+                                <p>@admin.ConsultationHours</p>
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(admin.Availability))
+                        {
+                            <div class="contact-section availability">
+                                <label><i class="fas fa-calendar"></i> Dostupnost:</label>
+                                <p>@admin.Availability</p>
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(admin.Description))
+                        {
+                            <div class="contact-section description">
+                                <p>@admin.Description</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Quick Search Info -->
+    <div class="contacts-info">
+        <div class="info-box">
+            <h3><i class="fas fa-search"></i> Hledáte Kontakt?</h3>
+            <p>
+                Výše jsou uvedeni všichni učitelé a administrační pracovníci naší školy.
+                U každého učitele najdete seznam předmětů, které vyučuje, a konzultační hodiny.
+            </p>
+            <p>
+                <strong>Předměty jsou přiřazeny deterministically</strong> - každý učitel má stabilní seznam 
+                předmětů, které vyučuje, bez ohledu na aktuální rozvrh. Rozvrh tříd je generován náhodně,
+                ale přiřazení učitelů k jednotlivým lekcím v rozvrhu se řídí těmito pevnými mapováními.
+            </p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .contacts-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .contacts-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding-top: 5rem;
+        padding-bottom: 2rem;
+        border-bottom: 2px solid var(--border-light);
+    }
+
+    .contacts-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        color: var(--primary);
+    }
+
+    .contacts-header p {
+        font-size: 1.1rem;
+        margin: 0;
+        color: var(--text-secondary);
+    }
+
+    .contacts-section {
+        margin-bottom: 4rem;
+    }
+
+    .section-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--primary);
+    }
+
+    .section-header h2 {
+        font-size: 1.8rem;
+        margin: 0 0 0.5rem 0;
+        color: var(--primary);
+    }
+
+    .section-subtitle {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+    }
+
+    .teachers-grid,
+    .admin-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .contact-card {
+        background: var(--surface);
+        border: 1px solid var(--border-light);
+        border-radius: 8px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .contact-card:hover {
+        border-color: var(--primary);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .card-header {
+        padding: 1.5rem;
+        background: linear-gradient(135deg, var(--primary-50) 0%, var(--primary-100) 100%);
+        border-bottom: 1px solid var(--border-light);
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .card-header.director {
+        background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+    }
+
+    .card-header.deputy {
+        background: linear-gradient(135deg, #87ceeb 0%, #b0e0e6 100%);
+    }
+
+    .avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        overflow: hidden;
+        flex-shrink: 0;
+        background: var(--surface);
+        border: 2px solid var(--primary);
+    }
+
+    .avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .avatar-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--primary-100);
+        color: var(--primary);
+        font-size: 1.8rem;
+    }
+
+    .header-info {
+        flex: 1;
+    }
+
+    .header-info h3 {
+        margin: 0 0 0.25rem 0;
+        font-size: 1.1rem;
+        color: var(--text-primary);
+    }
+
+    .specialization,
+    .position {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 1.2rem;
+    }
+
+    .contact-section {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .contact-section label {
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .contact-section label i {
+        color: var(--primary);
+        width: 16px;
+    }
+
+    .contact-section p {
+        margin: 0;
+        font-size: 0.95rem;
+        color: var(--text-secondary);
+        line-height: 1.5;
+    }
+
+    .subjects-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .subject-badge {
+        display: inline-block;
+        background: var(--primary-50);
+        color: var(--primary);
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        border: 1px solid var(--primary);
+    }
+
+    .contact-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 0.95rem;
+        color: var(--text-secondary);
+    }
+
+    .info-item i {
+        color: var(--primary);
+        width: 16px;
+        text-align: center;
+        flex-shrink: 0;
+    }
+
+    .info-item a {
+        color: var(--primary);
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .info-item a:hover {
+        color: var(--primary-dark);
+        text-decoration: underline;
+    }
+
+    .consultation,
+    .availability {
+        background: var(--primary-50);
+        padding: 0.75rem;
+        border-radius: 6px;
+        border-left: 3px solid var(--primary);
+    }
+
+    .description {
+        font-style: italic;
+        color: var(--text-secondary);
+        padding-top: 0.5rem;
+        border-top: 1px solid var(--border-light);
+    }
+
+    .contacts-info {
+        margin-top: 3rem;
+        padding: 2rem;
+        background: var(--primary-50);
+        border-radius: 8px;
+        border: 1px solid var(--primary-100);
+    }
+
+    .info-box h3 {
+        margin: 0 0 1rem 0;
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .info-box p {
+        margin: 0.5rem 0;
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+
+    .info-box p strong {
+        color: var(--primary);
+    }
+
+    @@media (max-width: 768px) {
+        .contacts-header h1 {
+            font-size: 2rem;
+        }
+
+        .teachers-grid,
+        .admin-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .card-header {
+            flex-wrap: wrap;
+        }
+
+        .contacts-container {
+            margin: 1rem auto;
+        }
+    }
+</style>

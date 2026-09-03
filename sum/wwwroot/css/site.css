@@ -1788,17 +1788,16 @@ a:hover {
     --primary: #f472b6; /* pink-400 */
     --primary-dark: #db2777; /* pink-600 */
     --primary-light: #fbcfe8; /* pink-200 */
-    
+
     --bg-primary: #0f172a; /* Slate 900 */
     --bg-secondary: #0b0f19; /* Deeper slate for body/page background */
     --bg-tertiary: #1e293b; /* Slate 800 */
     --bg-card: #1e293b; /* Slate 800 */
     --bg-input: #1e293b; /* Slate 800 */
     --bg-hero: #0f172a;
-
     --text-primary: #f8fafc; /* Slate 50 */
     --text-secondary: #cbd5e1; /* Slate 300 */
-    --text-muted: #64748b; /* Slate 500 */
+    --text-muted: #ffc0cb; /* Slate 500 */
 
     --border: #334155; /* Slate 700 */
     --border-light: #1e293b; /* Slate 800 */
@@ -1807,7 +1806,6 @@ a:hover {
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
     --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.5);
     --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.3);
-
     --primary-50: rgba(244, 114, 182, 0.08);
     --primary-100: rgba(244, 114, 182, 0.15);
     --primary-200: rgba(244, 114, 182, 0.25);
